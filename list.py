@@ -1,5 +1,4 @@
 from nudo import Node
-from comida import
 from usuario import Usuarios
 from factura import Facturas
 
@@ -11,7 +10,7 @@ class Lista:
         self.head: Node | None = None
         self.tail: Node | None = None
 
-    def preprend(self, data: Comida):
+    def preprend(self, data):
         new_node = Node(data)
         new_node.next = self.head
         self.head = new_node
@@ -30,7 +29,7 @@ class Lista:
     def is_empty(self):
         return self.head is None and self.tail is None
 
-    def append(self, data: Comida):
+    def append(self, data):
         if self.is_empty():
             new_node = Node(data)
             self.head = new_node
@@ -42,11 +41,11 @@ class Lista:
             self.tail = new_node
             self.size += 1
 
-    def search_by_value(self, data: int):
+    def search_by_ID(self, data: int):
         current = self.head
 
         while current is not None:
-            if isinstance(current.data, Comida) and current.data.identification == data:
+            if isinstance(current.data, Usuarios) and current.data.identificador == data:
                 return current
             else:
                 current = current.next
@@ -90,12 +89,12 @@ class Lista:
 
         raise Exception("The position is not exist")
 
-    def deleate_by_value(self, data: int):
+    def deleate_by_ID(self, data: int):
         current = self.head
         previous = None
 
         while current is not None:
-            if isinstance(current.data, Comida) and current.data.identification == data:
+            if isinstance(current.data, Usuarios) and current.data.identificador == data:
                 if previous is None:
                     return self.shift()
                 else:

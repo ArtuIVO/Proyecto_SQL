@@ -1,13 +1,23 @@
 import tkinter
 from tkinter import Tk, Label, Button, Entry, StringVar
 from usuario import Usuarios
-
+from list import Lista
 import pyodbc
+usuarios = Lista()
+
+server = "Agronomia"
+database = "Cursos de agronomia"
+username = usuarios().nombre
+password = Usuarios().contrasenia
+conn_str = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
+
+conn = pyodbc.connect(conn_str)
 
 server = "LocalHost"
 bd = "Usuarios"
 
 usuario0 = Usuarios("Jorge Manuel", "Tusmuertos.com18", 1525)
+usuarios.append(usuario0)
 
 ventana = tkinter.Tk()
 ventana.geometry("900x700")
