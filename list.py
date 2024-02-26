@@ -1,5 +1,6 @@
 from nudo import Node
 from usuario import Usuarios
+from cliente import Cliente
 
 
 class Lista:
