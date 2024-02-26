@@ -1,10 +1,8 @@
-from comida import
-from usuario import
-from factura import Facturas
+from usuario import Usuarios
 
 
 class Node:
-    def __init__(self, data: Comida | Clientes | Facturas):
+    def __init__(self, data: Usuarios):
         self.data = data
         self.next: Node | None = None
 

@@ -1,6 +1,5 @@
 from nudo import Node
 from usuario import Usuarios
-from factura import Facturas
 
 
 class Lista:
@@ -9,6 +8,19 @@ class Lista:
         self.max = limit
         self.head: Node | None = None
         self.tail: Node | None = None
+
+    def __getitem__(self, index):
+        current = self.head
+        count = 0
+
+        while current is not None:
+            if count == index:
+                return current.data
+            else:
+                current = current.next
+                count += 1
+
+        raise IndexError("Index out of range")
 
     def preprend(self, data):
         new_node = Node(data)
@@ -21,10 +33,6 @@ class Lista:
         new_node.next = self.head
         self.head = new_node
         self.size += 1
-
-    def preprend_factura(self, data: Facturas):
-        new_node = Node(data)
-        new_node += new_node
 
     def is_empty(self):
         return self.head is None and self.tail is None
