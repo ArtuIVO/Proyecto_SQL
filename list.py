@@ -50,11 +50,33 @@ class Lista:
             self.tail = new_node
             self.size += 1
 
-    def search_by_ID(self, data: int):
+    def search_by_ID_usuario(self, data: int):
         current = self.head
 
         while current is not None:
             if isinstance(current.data, Usuarios) and current.data.identificador == data:
+                return current
+            else:
+                current = current.next
+
+        return None
+
+    def search_by_ID_cleinte(self, data: int):
+        current = self.head
+
+        while current is not None:
+            if isinstance(current.data, Cliente) and current.data.identificador == data:
+                return current
+            else:
+                current = current.next
+
+        return None
+
+    def search_by_cel(self, data: int):
+        current = self.head
+
+        while current is not None:
+            if isinstance(current.data, Cliente) and current.data.celular == data:
                 return current
             else:
                 current = current.next
