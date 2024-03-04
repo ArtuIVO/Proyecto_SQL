@@ -58,7 +58,6 @@ def mostrar_tablas():
             etiqueta_tabla = tkinter.Label(ventana_tablas, text=tabla[0])
             etiqueta_tabla.pack()
 
-        # Mostrar la información de las listas en las tablas
         cursor.execute("SELECT * FROM Usuarios")
         usuarios_info = cursor.fetchall()
 
@@ -137,13 +136,88 @@ def update_new_customer():
     etiqueta_ID.pack()
     cuadro_celular = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_celular.pack(pady=10)
-    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
     boton_obtener_datos.pack(pady=10)
 
     def regresar1():
         ventana3.destroy()
 
-    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1)
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
+
+
+def delete_customer():
+    def obtener_datos():
+        identificador = cuadro_ID.get()
+
+        try:
+            identificador = int(identificador)
+            if clientes.search_by_ID_cleinte(identificador) is None:
+                etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
+                                                  font=("times new roman", 12))
+                etiqueta_error_id.pack()
+            else:
+                etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
+                                                                       f"{clientes.search_by_ID_cleinte(identificador).data}\n"
+                                                                       f"Desea eliminar al usuario ? Si / No")
+                etiqueta_de_eliminacion.pack()
+
+                def boton_si():
+                    if clientes.search_by_ID_cleinte(identificador) is None:
+                        etiqueta_error_id = tkinter.Label(ventana3,
+                                                          text="El ID ingresado no existe, vuelva a intentarlo",
+                                                          font=("times new roman", 12))
+                        etiqueta_error_id.pack()
+                    else:
+                        clientes.deleate_by_ID(identificador)
+                        etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente eliminado",
+                                                           font=("times new roman", 12))
+                        etiqueta_eliminado.pack()
+
+                def boton_no():
+                    if clientes.search_by_ID_cleinte(identificador) is None:
+                        etiqueta_error_id = tkinter.Label(ventana3,
+                                                          text="El ID ingresado no existe, vuelva a intentarlo",
+                                                          font=("times new roman", 12))
+                        etiqueta_error_id.pack()
+                    else:
+                        etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no eliminado",
+                                                           font=("times new roman", 12))
+                        etiqueta_eliminado.pack()
+
+                boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                          height=2, bd=12)
+                boton_si.pack(pady=10)
+                boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                          height=2, bd=12)
+                boton_no.pack(pady=10)
+        except ValueError:
+            etiqueta_error_id = tkinter.Label(ventana3, text="ID no válida, por favor ingresar solo números",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del usuario a eliminar: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta_ID = tkinter.Label(ventana3, text="ID:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_ID.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Aceptar", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
     ventana3.mainloop()
 
@@ -196,15 +270,170 @@ def update_new_user():
     etiqueta_ID.pack()
     cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_ID.pack(pady=10)
-    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
     boton_obtener_datos.pack(pady=10)
 
     def regresar1():
         ventana3.destroy()
 
-    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1)
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
     ventana3.mainloop()
+
+
+def delete_user():
+    def obtener_datos():
+        identificador = cuadro_ID.get()
+
+        try:
+            identificador = int(identificador)
+            if usuarios.search_by_ID_usuario(identificador) is None:
+                etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
+                                                  font=("times new roman", 12))
+                etiqueta_error_id.pack()
+            else:
+                etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
+                                                                       f"{usuarios.search_by_ID_usuario(identificador).data}\n"
+                                                                       f"Desea eliminar al usuario ? Si / No")
+                etiqueta_de_eliminacion.pack()
+
+                def boton_si():
+                    if usuarios.search_by_ID_usuario(identificador) is None:
+                        etiqueta_error_id = tkinter.Label(ventana3,
+                                                          text="El ID ingresado no existe, vuelva a intentarlo",
+                                                          font=("times new roman", 12))
+                        etiqueta_error_id.pack()
+                    else:
+                        usuarios.deleate_by_ID(identificador)
+                        etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario eliminado",
+                                                           font=("times new roman", 12))
+                        etiqueta_eliminado.pack()
+
+                def boton_no():
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no eliminado",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
+
+                boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                          height=2, bd=12)
+                boton_si.pack(pady=10)
+                boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                          height=2, bd=12)
+                boton_no.pack(pady=10)
+        except ValueError:
+            etiqueta_error_id = tkinter.Label(ventana3, text="ID no válida, por favor ingresar solo números",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del usuario a eliminar: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta_ID = tkinter.Label(ventana3, text="ID:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_ID.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Aceptar", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
+
+
+def mostrar_usuarios():
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Estos son los usuarios actuales:",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta4 = tkinter.Label(ventana3, text=f"{usuarios.transversal()}")
+    etiqueta4.pack()
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
+
+
+def mostrar_clientes():
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Estos son los usuarios actuales:",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta4 = tkinter.Label(ventana3, text=f"{clientes.transversal()}")
+    etiqueta4.pack()
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
+
+
+def menu_de_usuarios():
+    ventana4 = tkinter.Tk()
+    ventana4.geometry("700x700")
+    etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
+    etiqueta2.pack(pady=20)
+    boton2 = tkinter.Button(ventana4, text="Agregar nuevos usuarios", command=update_new_user, bg="lime", fg="black",
+                            width=15, height=2, bd=12)
+    boton2.pack(pady=5)
+    boton3 = tkinter.Button(ventana4, text="Eliminar usurios", command=delete_user, bg="green", fg="black", width=15,
+                            height=2, bd=12)
+    boton3.pack(pady=5)
+    boton4 = tkinter.Button(ventana4, text="Mostrar todos los usuarios", command=mostrar_usuarios, bg="lime",
+                            fg="black", width=15, height=2, bd=12)
+    boton4.pack(pady=5)
+
+    def regresar2():
+        ventana4.destroy()
+
+    boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana4.mainloop()
+
+
+def menu_de_clientes():
+    ventana4 = tkinter.Tk()
+    ventana4.geometry("700x700")
+    etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
+    etiqueta2.pack(pady=20)
+    boton2 = tkinter.Button(ventana4, text="Agregar nuevos clientes", command=update_new_customer, bg="lime",
+                            fg="black", width=15, height=2, bd=12)
+    boton2.pack(pady=5)
+    boton3 = tkinter.Button(ventana4, text="Eliminar clientes", command=delete_customer, bg="green", fg="black",
+                            width=15, height=2, bd=12)
+    boton3.pack(pady=5)
+    boton4 = tkinter.Button(ventana4, text="Mostrar todos los clientes", command=mostrar_clientes, bg="lime",
+                            fg="black", width=15, height=2, bd=12)
+    boton4.pack(pady=5)
+
+    def regresar2():
+        ventana4.destroy()
+
+    boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana4.mainloop()
 
 
 def vermenu():
@@ -212,12 +441,15 @@ def vermenu():
     ventana2.geometry("700x700")
     etiqueta2 = tkinter.Label(ventana2, text="¿Qué desea hacer?", font=("times new roman", 14))
     etiqueta2.pack(pady=20)
-    boton2 = tkinter.Button(ventana2, text="Agregar nuevo usuario", command=update_new_user)
+    boton2 = tkinter.Button(ventana2, text="Ver menú de usuarios", command=menu_de_usuarios, bg="green", fg="black",
+                            width=15, height=2, bd=12)
     boton2.pack(pady=5)
-    boton3 = tkinter.Button(ventana2, text="Agregar nuevo cliente", command=update_new_customer)
+    boton3 = tkinter.Button(ventana2, text="Ver menú de clientes", command=menu_de_clientes, bg="orange", fg="white",
+                            width=15, height=2, bd=12)
     boton3.pack(pady=5)
 
-    boton_mostrar_tablas = tkinter.Button(ventana2, text="Mostrar Tablas", command=mostrar_tablas)
+    boton_mostrar_tablas = tkinter.Button(ventana2, text="Mostrar Tablas", command=mostrar_tablas, bg="purple",
+                                          fg="white", width=15, height=2, bd=12)
     boton_mostrar_tablas.pack(pady=5)
 
     def activacion():
@@ -269,14 +501,16 @@ def vermenu():
                                                   font=("times new roman", 14))
                 etiqueta_activado.pack(pady=20)
 
-    boton4 = tkinter.Button(ventana2, text="Activar la base de datos", command=activacion)
+    boton4 = tkinter.Button(ventana2, text="Activar la base de datos", command=activacion, bg="blue", fg="white",
+                            width=15, height=2, bd=12)
     boton4.pack(pady=5)
 
     def regresar():
         ventana2.destroy()
         ventana.deiconify()
 
-    boton_regresar = tkinter.Button(ventana2, text="Regresar al menú", command=regresar)
+    boton_regresar = tkinter.Button(ventana2, text="Regresar al menú", command=regresar, bg="red", fg="white", width=15,
+                                    height=2, bd=12)
     boton_regresar.pack(pady=5)
     ventana2.mainloop()
 
@@ -285,11 +519,14 @@ def salir():
     ventana.destroy()
 
 
-etiqueta = tkinter.Label(ventana, text="Menú", font=("times new roman", 14))
+etiqueta = tkinter.Label(ventana, text="BIENVENIDO AL PROGRAMA DE ADMINISTRACION DE USUARIOS Y CLIENTES",
+                         font=("times new roman", 14))
 etiqueta.pack(pady=20)
-boton0 = tkinter.Button(ventana, text="Ver el menú", command=vermenu)
+boton0 = tkinter.Button(ventana, text="Ver el menú", command=vermenu, font=("times new roman", 12), bg="blue",
+                        fg="white", width=15, height=2, bd=12)
 boton0.pack(pady=5)
-boton1 = tkinter.Button(ventana, text="Salir", command=salir)
+boton1 = tkinter.Button(ventana, text="Salir", command=salir, font=("times new roman", 12), bg="red", fg="black",
+                        width=15, height=2, bd=12)
 boton1.pack(pady=5)
 
 ventana.mainloop()

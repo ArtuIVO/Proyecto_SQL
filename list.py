@@ -125,7 +125,7 @@ class Lista:
         previous = None
 
         while current is not None:
-            if isinstance(current.data, Usuarios) and current.data.identificador == data:
+            if isinstance(current.data, Usuarios | Cliente) and current.data.identificador == data:
                 if previous is None:
                     return self.shift()
                 else:

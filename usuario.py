@@ -6,4 +6,4 @@ class Usuarios:
 
     def __str__(self):
         return (f"Nombre del usuario: {self.nombre}\n"
-                f"El ID del usurio: {self.identificador}\n")
+                f"El ID del usuario: {self.identificador}\n")
