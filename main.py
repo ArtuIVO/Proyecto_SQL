@@ -157,54 +157,49 @@ def delete_customer():
 
     def obtener_datos():
         identificador = cuadro_ID.get()
-
-        try:
-            identificador = int(identificador)
-            if clientes.search_by_ID_cleinte(identificador) is None:
-                etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
-                                                  font=("times new roman", 12))
-                etiqueta_error_id.pack()
-            else:
-                etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
-                                                                       f"{clientes.search_by_ID_cleinte(identificador).data}\n"
-                                                                       f"Desea eliminar al usuario ? Si / No")
-                etiqueta_de_eliminacion.pack()
-
-                def boton_si():
-                    if clientes.search_by_ID_cleinte(identificador) is None:
-                        etiqueta_error_id = tkinter.Label(ventana3,
-                                                          text="El ID ingresado no existe, vuelva a intentarlo",
-                                                          font=("times new roman", 12))
-                        etiqueta_error_id.pack()
-                    else:
-                        cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
-                        conn.commit()
-                        clientes.deleate_by_ID(identificador)
-                        etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente eliminado",
-                                                           font=("times new roman", 12))
-                        etiqueta_eliminado.pack()
-
-                def boton_no():
-                    if clientes.search_by_ID_cleinte(identificador) is None:
-                        etiqueta_error_id = tkinter.Label(ventana3,
-                                                          text="El ID ingresado no existe, vuelva a intentarlo",
-                                                          font=("times new roman", 12))
-                        etiqueta_error_id.pack()
-                    else:
-                        etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no eliminado",
-                                                           font=("times new roman", 12))
-                        etiqueta_eliminado.pack()
-
-                boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
-                                          height=2, bd=12)
-                boton_si.pack(pady=10)
-                boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
-                                          height=2, bd=12)
-                boton_no.pack(pady=10)
-        except ValueError:
-            etiqueta_error_id = tkinter.Label(ventana3, text="ID no válida, por favor ingresar solo números",
+        identificador = int(identificador)
+        if clientes.search_by_ID_cleinte(identificador) is None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
+        else:
+            etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
+                                                                   f"{clientes.search_by_ID_cleinte(identificador).data}\n"
+                                                                   f"Desea eliminar al usuario ? Si / No")
+            etiqueta_de_eliminacion.pack()
+
+            def boton_si():
+                if clientes.search_by_ID_cleinte(identificador) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El ID ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
+                    conn.commit()
+                    clientes.deleate_by_ID(identificador)
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente eliminado",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
+
+            def boton_no():
+                if clientes.search_by_ID_cleinte(identificador) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El ID ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no eliminado",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
+
+            boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_no.pack(pady=10)
+
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
@@ -297,48 +292,49 @@ def delete_user():
 
     def obtener_datos():
         identificador = cuadro_ID.get()
+        identificador = int(identificador)
+        if usuarios.search_by_ID_usuario(identificador) is None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        else:
+            etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
+                                                                   f"{usuarios.search_by_ID_usuario(identificador).data}\n"
+                                                                   f"Desea eliminar al usuario ? Si / No")
+            etiqueta_de_eliminacion.pack()
 
-        try:
-            identificador = int(identificador)
-            if usuarios.search_by_ID_usuario(identificador) is None:
-                etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
-                                                  font=("times new roman", 12))
-                etiqueta_error_id.pack()
-            else:
-                etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
-                                                                       f"{usuarios.search_by_ID_usuario(identificador).data}\n"
-                                                                       f"Desea eliminar al usuario ? Si / No")
-                etiqueta_de_eliminacion.pack()
+            def boton_si():
+                if usuarios.search_by_ID_usuario(identificador) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El ID ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    cursor.execute("DELETE FROM Usuarios WHERE identificador = %s", (identificador,))
+                    conn.commit()
+                    usuarios.deleate_by_ID(identificador)
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario eliminado",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
 
-                def boton_si():
-                    if usuarios.search_by_ID_usuario(identificador) is None:
-                        etiqueta_error_id = tkinter.Label(ventana3,
-                                                          text="El ID ingresado no existe, vuelva a intentarlo",
-                                                          font=("times new roman", 12))
-                        etiqueta_error_id.pack()
-                    else:
-                        cursor.execute("DELETE FROM Usuarios WHERE identificador = %s", (identificador,))
-                        conn.commit()
-                        usuarios.deleate_by_ID(identificador)
-                        etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario eliminado",
-                                                           font=("times new roman", 12))
-                        etiqueta_eliminado.pack()
-
-                def boton_no():
+            def boton_no():
+                if usuarios.search_by_ID_usuario(identificador) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El ID ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no eliminado",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
 
-                boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
-                                          height=2, bd=12)
-                boton_si.pack(pady=10)
-                boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
-                                          height=2, bd=12)
-                boton_no.pack(pady=10)
-        except ValueError:
-            etiqueta_error_id = tkinter.Label(ventana3, text="ID no válida, por favor ingresar solo números",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_no.pack(pady=10)
+
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
