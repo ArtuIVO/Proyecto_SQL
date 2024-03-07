@@ -43,6 +43,7 @@ conn.close()
 
 
 def mostrar_tablas():
+    global conn, cursor
     try:
         cursor = conn.cursor()
         cursor.execute("SHOW TABLES")
@@ -83,6 +84,8 @@ def mostrar_tablas():
 
 
 def update_new_customer():
+    global conn, cursor
+
     def obtener_datos():
         nombre = cuadro_nombre.get()
         identificador = cuadro_contrasenia.get()
@@ -150,6 +153,8 @@ def update_new_customer():
 
 
 def delete_customer():
+    global conn, cursor
+
     def obtener_datos():
         identificador = cuadro_ID.get()
 
@@ -172,6 +177,8 @@ def delete_customer():
                                                           font=("times new roman", 12))
                         etiqueta_error_id.pack()
                     else:
+                        cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
+                        conn.commit()
                         clientes.deleate_by_ID(identificador)
                         etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente eliminado",
                                                            font=("times new roman", 12))
@@ -223,6 +230,8 @@ def delete_customer():
 
 
 def update_new_user():
+    global conn, cursor
+
     def obtener_datos():
         nombre = cuadro_nombre.get()
         contrasenia = cuadro_contrasenia.get()
@@ -284,6 +293,8 @@ def update_new_user():
 
 
 def delete_user():
+    global conn, cursor
+
     def obtener_datos():
         identificador = cuadro_ID.get()
 
@@ -306,6 +317,8 @@ def delete_user():
                                                           font=("times new roman", 12))
                         etiqueta_error_id.pack()
                     else:
+                        cursor.execute("DELETE FROM Usuarios WHERE identificador = %s", (identificador,))
+                        conn.commit()
                         usuarios.deleate_by_ID(identificador)
                         etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario eliminado",
                                                            font=("times new roman", 12))
@@ -487,7 +500,7 @@ def vermenu():
                             id INT AUTO_INCREMENT PRIMARY KEY,
                             nombre LONGTEXT,
                             identificador INT,
-                            celular INT
+             1               celular INT
                         );
                     """)
                 conn.commit()
