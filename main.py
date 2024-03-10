@@ -38,8 +38,8 @@ cursor.execute("""
         celular INT
     );
 """)
-cursor.close()
-conn.close()
+
+conn.commit()
 
 
 def mostrar_tablas():
@@ -231,31 +231,26 @@ def update_new_user():
         nombre = cuadro_nombre.get()
         contrasenia = cuadro_contrasenia.get()
         identificador = cuadro_ID.get()
-
-        try:
-            nombre = str(nombre)
-            identificador = int(identificador)
-            if usuarios.search_by_ID_usuario(identificador) is not None:
-                etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe",
-                                                  font=("times new roman", 12))
-                etiqueta_error_id.pack()
-            else:
-                new_user = Usuarios(nombre, contrasenia, identificador)
-                usuarios.append(new_user)
-
-                cursor = conn.cursor()
-                cursor.execute("INSERT INTO Usuarios (nombre, contrasenia, identificador) VALUES (%s, %s, %s)",
-                               (nombre, contrasenia, identificador))
-                conn.commit()
-
-                print(new_user)
-                etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
-                                                    font=("times new roman", 12))
-                etiqueta_aceptacion.pack()
-        except ValueError:
-            etiqueta_error_id = tkinter.Label(ventana3, text="ID no válida, por favor ingresar solo números",
+        nombre = str(nombre)
+        identificador = int(identificador)
+        if usuarios.search_by_ID_usuario(identificador) is not None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
+        else:
+            new_user = Usuarios(nombre, contrasenia, identificador)
+            usuarios.append(new_user)
+
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO Usuarios (nombre, contrasenia, identificador) VALUES (%s, %s, %s)",
+                           (nombre, contrasenia, identificador))
+            conn.commit()
+
+            print(new_user)
+            etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
+                                                font=("times new roman", 12))
+            etiqueta_aceptacion.pack()
+
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
@@ -460,59 +455,6 @@ def vermenu():
     boton_mostrar_tablas = tkinter.Button(ventana2, text="Mostrar Tablas", command=mostrar_tablas, bg="purple",
                                           fg="white", width=15, height=2, bd=12)
     boton_mostrar_tablas.pack(pady=5)
-
-    def activacion():
-        global conn
-        server = "localhost"
-        database = "Agronomia"
-        primer_usuario = usuarios.head.data
-        username = primer_usuario.nombre
-        password = primer_usuario.contrasenia
-
-        try:
-            conn = mysql.connector.connect(
-                host=server,
-                database=database,
-                user=username,
-                password=password
-            )
-
-            if conn.is_connected():
-                print('Conexión exitosa a la base de datos')
-
-                cursor = conn.cursor()
-                cursor.execute("""
-                        CREATE TABLE IF NOT EXISTS Usuarios (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            nombre LONGTEXT,
-                            contrasenia LONGTEXT,
-                            identificador INT
-                        );
-                    """)
-                conn.commit()
-
-                cursor.execute("""
-                        CREATE TABLE IF NOT EXISTS Clientes (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            nombre LONGTEXT,
-                            identificador INT,
-             1               celular INT
-                        );
-                    """)
-                conn.commit()
-
-        except mysql.connector.Error as e:
-            print(f'Error al conectarse a la base de datos: {e}')
-
-        finally:
-            if conn is not None and conn.is_connected():
-                etiqueta_activado = tkinter.Label(ventana2, text="Base de datos conectada correctamente",
-                                                  font=("times new roman", 14))
-                etiqueta_activado.pack(pady=20)
-
-    boton4 = tkinter.Button(ventana2, text="Activar la base de datos", command=activacion, bg="blue", fg="white",
-                            width=15, height=2, bd=12)
-    boton4.pack(pady=5)
 
     def regresar():
         ventana2.destroy()
