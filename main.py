@@ -91,37 +91,30 @@ def update_new_customer():
         identificador = cuadro_contrasenia.get()
         celular = cuadro_celular.get()
 
-        try:
-            nombre1 = str(nombre)
-            identificador1 = int(identificador)
-            celular1 = int(celular)
-            if clientes.search_by_ID_cleinte(identificador1) is not None:
-                etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe",
-                                                  font=("times new roman", 12))
-                etiqueta_error_id.pack()
-            elif clientes.search_by_cel(celular1) is not None:
-                etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe",
-                                                  font=("times new roman", 12))
-                etiqueta_error_id.pack()
-            else:
-                new_customer = Cliente(nombre1, identificador1, celular1)
-                clientes.append(new_customer)
-
-                cursor = conn.cursor()
-                cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
-                               (nombre, identificador, celular))
-                conn.commit()
-
-                print(new_customer)
-                etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
-                                                    font=("times new roman", 12))
-                etiqueta_aceptacion.pack()
-        except ValueError:
-            etiqueta_error_id = tkinter.Label(ventana3, text="ID o su número de telefono no son validos, por favor "
-                                                             "ingresar solo números",
+        nombre1 = str(nombre)
+        identificador1 = int(identificador)
+        celular1 = int(celular)
+        if clientes.search_by_ID_cleinte(identificador1) is not None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
+        elif clientes.search_by_cel(celular1) is not None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        else:
+            new_customer = Cliente(nombre1, identificador1, celular1)
+            clientes.append(new_customer)
 
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
+                           (nombre, identificador, celular))
+            conn.commit()
+
+            print(new_customer)
+            etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
+                                                font=("times new roman", 12))
+            etiqueta_aceptacion.pack()
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, ID y celulcar de su núevo cliente: ",
@@ -200,7 +193,6 @@ def delete_customer():
                                       height=2, bd=12)
             boton_no.pack(pady=10)
 
-
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del usuario a eliminar: ",
@@ -250,7 +242,6 @@ def update_new_user():
             etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
                                                 font=("times new roman", 12))
             etiqueta_aceptacion.pack()
-
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
@@ -329,7 +320,6 @@ def delete_user():
             boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
                                       height=2, bd=12)
             boton_no.pack(pady=10)
-
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
@@ -414,7 +404,6 @@ def menu_de_usuarios():
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
     ventana4.mainloop()
-
 
 
 def menu_de_clientes():
