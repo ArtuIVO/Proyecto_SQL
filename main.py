@@ -416,6 +416,7 @@ def menu_de_usuarios():
     ventana4.mainloop()
 
 
+
 def menu_de_clientes():
     ventana4 = tkinter.Tk()
     ventana4.geometry("700x700")
