@@ -1,16 +1,14 @@
+import random
 import tkinter
 import mysql.connector
 from usuario import Usuarios
 from list import Lista
 from cliente import Cliente
+from venta import Factura
 
 usuarios = Lista()
 clientes = Lista()
-
-usuario0 = Usuarios("Arturo Alva", "Tusmuertos.com18", 1525)
-usuarios.append(usuario0)
-cliente0 = Cliente("Jose Daniel", 1525123, 33987855)
-clientes.append(cliente0)
+ventas = Lista()
 
 ventana = tkinter.Tk()
 ventana.geometry("900x700")
@@ -38,7 +36,14 @@ cursor.execute("""
         celular INT
     );
 """)
-
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS Factura (
+        num_factura INT AUTO_INCREMENT PRIMARY KEY,
+        nombre LONGTEXT,
+        tel INT,
+        cantidad INT
+    );
+""")
 conn.commit()
 
 
@@ -79,8 +84,155 @@ def mostrar_tablas():
             etiqueta_cliente = tkinter.Label(ventana_tablas, text=cliente_info)
             etiqueta_cliente.pack()
 
+        cursor.execute("SELECT * FROM Factura")
+        ventas_info = cursor.fetchall()
+
+        etiqueta_clientes = tkinter.Label(ventana_tablas, text="Información de Facturas:")
+        etiqueta_clientes.pack()
+
+        for venta_info in ventas_info:
+            etiqueta_cliente = tkinter.Label(ventana_tablas, text=venta_info)
+            etiqueta_cliente.pack()
+
     except mysql.connector.Error as e:
         print(f"Error al obtener las tablas: {e}")
+
+
+def update_new_facture():
+    global conn, cursor
+
+    def obtener_datos():
+        nombre = cuadro_nombre.get()
+        identificador = cuadro_contrasenia.get()
+        celular = cuadro_celular.get()
+
+        nombre1 = str(nombre)
+        identificador1 = int(identificador)
+        celular1 = int(celular)
+        num_de_factura = int(random.randint(0, 999))
+        if ventas.search_by_ID_ventas(num_de_factura) is not None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El No. de factura ya existe",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        elif ventas.search_by_tel(identificador1) is not None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        else:
+            new_facture = Factura(nombre1, identificador1, celular1, num_de_factura)
+            ventas.append(new_facture)
+
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO Factura (nombre, tel, cantidad, num_factura) VALUES (%s, %s, %s, %s)",
+                           (nombre, identificador, celular, num_de_factura))
+            conn.commit()
+
+            print(new_facture)
+            etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
+                                                font=("times new roman", 12))
+            etiqueta_aceptacion.pack()
+
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre del cliente, número de telefono y cantidad del "
+                                             "producto comprado: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+    etiqueta_nombre = tkinter.Label(ventana3, text="Nombre:", font=("times new roman", 12))
+    etiqueta_nombre.pack()
+    cuadro_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_nombre.pack(pady=10)
+    etiqueta_contrasenia = tkinter.Label(ventana3, text="No. de cel:", font=("times new roman", 12))
+    etiqueta_contrasenia.pack()
+    cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_contrasenia.pack(pady=10)
+    etiqueta_ID = tkinter.Label(ventana3, text="Cantidad del producto:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_celular = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_celular.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
+
+
+def delete_facture():
+    global conn, cursor
+
+    def obtener_datos():
+        identificador = cuadro_ID.get()
+        identificador = int(identificador)
+        if ventas.search_by_ID_ventas(identificador) is None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El No. de factura ingresado no existe, vuelva a "
+                                                             "intentarlo",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        else:
+            etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Factura encontrada:\n"
+                                                                   f"{ventas.search_by_ID_ventas(identificador).data}\n"
+                                                                   f"Desea eliminar al usuario ? Si / No")
+            etiqueta_de_eliminacion.pack()
+
+            def boton_si():
+                if ventas.search_by_ID_ventas(identificador) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El No. de factura ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    cursor.execute("DELETE FROM Factura WHERE num_factura = %s", (identificador,))
+                    conn.commit()
+                    ventas.deleate_by_ID_ventas(identificador)
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Factura eliminada",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
+
+            def boton_no():
+                if ventas.search_by_ID_ventas(identificador) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El No. de factura ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Factura no eliminada",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
+
+            boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_no.pack(pady=10)
+
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el Número de factura a eliminar: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta_ID = tkinter.Label(ventana3, text="No. Factura:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_ID.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Aceptar", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
 
 
 def update_new_customer():
@@ -115,6 +267,7 @@ def update_new_customer():
             etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
                                                 font=("times new roman", 12))
             etiqueta_aceptacion.pack()
+
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, ID y celulcar de su núevo cliente: ",
@@ -362,6 +515,24 @@ def mostrar_usuarios():
     boton_regresar.pack(pady=5)
     ventana3.mainloop()
 
+def mostrar_facturas():
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Estos son las facturas actuales:",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta4 = tkinter.Label(ventana3, text=f"{ventas.transversal()}")
+    etiqueta4.pack()
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
+
 
 def mostrar_clientes():
     ventana3 = tkinter.Tk()
@@ -430,6 +601,30 @@ def menu_de_clientes():
     ventana4.mainloop()
 
 
+def menu_de_facturas():
+    ventana4 = tkinter.Tk()
+    ventana4.geometry("700x700")
+    etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
+    etiqueta2.pack(pady=20)
+    boton2 = tkinter.Button(ventana4, text="Hacer una factura", command=update_new_facture, bg="lime",
+                            fg="black", width=15, height=2, bd=12)
+    boton2.pack(pady=5)
+    boton3 = tkinter.Button(ventana4, text="Eliminar una factura", command=delete_facture, bg="green", fg="black",
+                            width=15, height=2, bd=12)
+    boton3.pack(pady=5)
+    boton4 = tkinter.Button(ventana4, text="Mostrar todas las facturas", command=mostrar_facturas, bg="lime",
+                            fg="black", width=15, height=2, bd=12)
+    boton4.pack(pady=5)
+
+    def regresar2():
+        ventana4.destroy()
+
+    boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana4.mainloop()
+
+
 def vermenu():
     ventana2 = tkinter.Tk()
     ventana2.geometry("700x700")
@@ -441,6 +636,9 @@ def vermenu():
     boton3 = tkinter.Button(ventana2, text="Ver menú de clientes", command=menu_de_clientes, bg="orange", fg="white",
                             width=15, height=2, bd=12)
     boton3.pack(pady=5)
+    boton4 = tkinter.Button(ventana2, text="Ver menú de facturas", command=menu_de_facturas, bg="navy", fg="white",
+                            width=15, height=2, bd=12)
+    boton4.pack(pady=5)
 
     boton_mostrar_tablas = tkinter.Button(ventana2, text="Mostrar Tablas", command=mostrar_tablas, bg="purple",
                                           fg="white", width=15, height=2, bd=12)

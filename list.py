@@ -1,6 +1,7 @@
 from nudo import Node
 from usuario import Usuarios
 from cliente import Cliente
+from venta import Factura
 
 
 class Lista:
@@ -72,6 +73,17 @@ class Lista:
 
         return None
 
+    def search_by_ID_ventas(self, data: int):
+        current = self.head
+
+        while current is not None:
+            if isinstance(current.data, Factura) and current.data.num_factura == data:
+                return current
+            else:
+                current = current.next
+
+        return None
+
     def search_by_cel(self, data: int):
         current = self.head
 
@@ -83,6 +95,16 @@ class Lista:
 
         return None
 
+    def search_by_tel(self, data: int):
+        current = self.head
+
+        while current is not None:
+            if isinstance(current.data, Factura) and current.data.tel == data:
+                return current
+            else:
+                current = current.next
+
+        return None
     def shift(self):
         if self.head is None:
             raise Exception("Subdesvordamiento de pila")
@@ -138,6 +160,26 @@ class Lista:
             current = current.next
 
         raise Exception("Not found this element")
+
+    def deleate_by_ID_ventas(self, data: int):
+        current = self.head
+        previous = None
+
+        while current is not None:
+            if isinstance(current.data, Factura) and current.data.num_factura == data:
+                if previous is None:
+                    return self.shift()
+                else:
+                    previous.next = current.next
+                    current.next = None
+                    self.size -= 1
+                    return current.data
+
+            previous = current
+            current = current.next
+
+        raise Exception("Not found this element")
+
 
     def pop(self):
         if self.tail is None:
