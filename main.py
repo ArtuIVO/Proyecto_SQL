@@ -114,10 +114,6 @@ def update_new_facture():
             etiqueta_error_id = tkinter.Label(ventana3, text="El No. de factura ya existe",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
-        elif ventas.search_by_tel(identificador1) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
         else:
             new_facture = Factura(nombre1, identificador1, celular1, num_de_factura)
             ventas.append(new_facture)
@@ -142,7 +138,7 @@ def update_new_facture():
     etiqueta_nombre.pack()
     cuadro_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_nombre.pack(pady=10)
-    etiqueta_contrasenia = tkinter.Label(ventana3, text="No. de cel:", font=("times new roman", 12))
+    etiqueta_contrasenia = tkinter.Label(ventana3, text="No. de nit:", font=("times new roman", 12))
     etiqueta_contrasenia.pack()
     cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_contrasenia.pack(pady=10)
@@ -166,6 +162,11 @@ def update_new_facture():
 def delete_facture():
     global conn, cursor
 
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
     def obtener_datos():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
@@ -175,6 +176,7 @@ def delete_facture():
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
+            global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Factura encontrada:\n"
                                                                    f"{ventas.search_by_ID_ventas(identificador).data}\n"
                                                                    f"Desea eliminar al usuario ? Si / No")
@@ -193,6 +195,7 @@ def delete_facture():
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Factura eliminada",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
+                    limpiar_datos()  # Limpia solo los datos relacionados con la factura
 
             def boton_no():
                 if ventas.search_by_ID_ventas(identificador) is None:
@@ -201,9 +204,10 @@ def delete_facture():
                                                       font=("times new roman", 12))
                     etiqueta_error_id.pack()
                 else:
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Factura no eliminada",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    etiqueta_no_eliminado = tkinter.Label(ventana3, text="Factura no eliminada",
+                                                          font=("times new roman", 12))
+                    etiqueta_no_eliminado.pack()
+                    limpiar_datos()  # Limpia solo los datos relacionados con la factura
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
                                       height=2, bd=12)
@@ -214,6 +218,7 @@ def delete_facture():
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
+
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el Número de factura a eliminar: ",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
@@ -233,7 +238,6 @@ def delete_facture():
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
     ventana3.mainloop()
-
 
 def update_new_customer():
     global conn, cursor
@@ -270,7 +274,7 @@ def update_new_customer():
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
-    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, ID y celulcar de su núevo cliente: ",
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, ID y celular de su núevo cliente: ",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
     etiqueta_nombre = tkinter.Label(ventana3, text="Nombre:", font=("times new roman", 12))
