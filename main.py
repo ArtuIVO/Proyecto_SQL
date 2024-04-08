@@ -1,14 +1,20 @@
 import random
 import tkinter
 import mysql.connector
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from usuario import Usuarios
 from list import Lista
 from cliente import Cliente
 from venta import Factura
+from producto import Producto
 
 usuarios = Lista()
 clientes = Lista()
 ventas = Lista()
+productos = Lista()
+producto0 = Producto("Cursos Libres", 50, 500)
+productos.append(producto0)
 
 ventana = tkinter.Tk()
 ventana.geometry("900x700")
@@ -98,6 +104,29 @@ def mostrar_tablas():
         print(f"Error al obtener las tablas: {e}")
 
 
+def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura):
+    # Calcular el total
+    precio_producto = 500  # Precio de producto (ejemplo)
+    total = cantidad_producto * precio_producto
+
+    # Crear el lienzo para la factura
+    c = canvas.Canvas(f"Factura_{num_factura}.pdf", pagesize=letter)
+    c.setFont("Helvetica", 12)
+
+    # Escribir los detalles en la factura
+    c.drawString(100, 750, "FACTURA")
+    c.drawString(100, 730, f"Cliente: {nombre_cliente}")
+    c.drawString(100, 710, f"NIT: {nit}")
+    c.drawString(100, 690, f"Número de Factura: {num_factura}")
+    c.drawString(100, 670, "Detalle del Producto:")
+    c.drawString(100, 650, f"Cantidad: {cantidad_producto}")
+    c.drawString(100, 630, f"Precio Unitario: ${precio_producto}")
+    c.drawString(100, 610, f"Total: ${total}")
+
+    # Guardar el PDF de la factura
+    c.save()
+
+
 def update_new_facture():
     global conn, cursor
 
@@ -115,6 +144,7 @@ def update_new_facture():
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
+            generar_factura(nombre1, celular1, identificador1, num_de_factura)
             new_facture = Factura(nombre1, identificador1, celular1, num_de_factura)
             ventas.append(new_facture)
 
@@ -195,7 +225,7 @@ def delete_facture():
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Factura eliminada",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
-                    limpiar_datos()  # Limpia solo los datos relacionados con la factura
+                    limpiar_datos()
 
             def boton_no():
                 if ventas.search_by_ID_ventas(identificador) is None:
@@ -207,7 +237,7 @@ def delete_facture():
                     etiqueta_no_eliminado = tkinter.Label(ventana3, text="Factura no eliminada",
                                                           font=("times new roman", 12))
                     etiqueta_no_eliminado.pack()
-                    limpiar_datos()  # Limpia solo los datos relacionados con la factura
+                    limpiar_datos()
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
                                       height=2, bd=12)
@@ -239,6 +269,7 @@ def delete_facture():
     boton_regresar.pack(pady=5)
     ventana3.mainloop()
 
+
 def update_new_customer():
     global conn, cursor
 
@@ -250,6 +281,7 @@ def update_new_customer():
         nombre1 = str(nombre)
         identificador1 = int(identificador)
         celular1 = int(celular)
+
         if clientes.search_by_ID_cleinte(identificador1) is not None:
             etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe",
                                               font=("times new roman", 12))
@@ -305,6 +337,11 @@ def update_new_customer():
 def delete_customer():
     global conn, cursor
 
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
     def obtener_datos():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
@@ -313,6 +350,7 @@ def delete_customer():
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
+            global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
                                                                    f"{clientes.search_by_ID_cleinte(identificador).data}\n"
                                                                    f"Desea eliminar al usuario ? Si / No")
@@ -331,6 +369,7 @@ def delete_customer():
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente eliminado",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
+                    limpiar_datos()
 
             def boton_no():
                 if clientes.search_by_ID_cleinte(identificador) is None:
@@ -342,6 +381,7 @@ def delete_customer():
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no eliminado",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
+                    limpiar_datos()
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
                                       height=2, bd=12)
@@ -352,7 +392,7 @@ def delete_customer():
 
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
-    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del usuario a eliminar: ",
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del cliente a eliminar: ",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
 
@@ -433,6 +473,11 @@ def update_new_user():
 def delete_user():
     global conn, cursor
 
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
     def obtener_datos():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
@@ -441,6 +486,7 @@ def delete_user():
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
+            global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
                                                                    f"{usuarios.search_by_ID_usuario(identificador).data}\n"
                                                                    f"Desea eliminar al usuario ? Si / No")
@@ -459,6 +505,7 @@ def delete_user():
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario eliminado",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
+                    limpiar_datos()
 
             def boton_no():
                 if usuarios.search_by_ID_usuario(identificador) is None:
@@ -470,6 +517,7 @@ def delete_user():
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no eliminado",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
+                    limpiar_datos()
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
                                       height=2, bd=12)
@@ -518,6 +566,7 @@ def mostrar_usuarios():
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
     ventana3.mainloop()
+
 
 def mostrar_facturas():
     ventana3 = tkinter.Tk()
