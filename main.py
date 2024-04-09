@@ -120,7 +120,7 @@ def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura):
     c.drawString(100, 690, f"Número de Factura: {num_factura}")
     c.drawString(100, 670, "Detalle del Producto:")
     c.drawString(100, 650, f"Cantidad: {cantidad_producto}")
-    c.drawString(100, 630, f"Precio Unitario: ${precio_producto}")
+    c.drawString(100, 630, f"Precio Unitario: Q{precio_producto}")
     c.drawString(100, 610, f"Total: ${total}")
 
     # Guardar el PDF de la factura
@@ -144,7 +144,7 @@ def update_new_facture():
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
-            generar_factura(nombre1, celular1, identificador1, num_de_factura)
+            generar_factura(nombre1, identificador1, celular1, num_de_factura)
             new_facture = Factura(nombre1, identificador1, celular1, num_de_factura)
             ventas.append(new_facture)
 
