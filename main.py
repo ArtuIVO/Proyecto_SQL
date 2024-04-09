@@ -4,6 +4,7 @@ import mysql.connector
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from usuario import Usuarios
@@ -107,27 +108,73 @@ def mostrar_tablas():
         print(f"Error al obtener las tablas: {e}")
 
 
-def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura):
+def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura, productos):
     # Calcular el total
     precio_producto = 500  # Precio de producto (ejemplo)
     total = cantidad_producto * precio_producto
 
+    estilos = getSampleStyleSheet()
+    estilo_titulo = estilos["Heading1"]
+    estilo_encabezado = estilos["Heading2"]
+    estilo_normal = estilos["BodyText"]
+    estilo_firma = ParagraphStyle(name="Firma", parent=estilo_normal, alignment=1)
+
+    contenido = Lista()
+
     # Crear el lienzo para la factura
-    c = canvas.Canvas(f"Factura_{num_factura}.pdf", pagesize=letter)
-    c.setFont("Helvetica", 12)
+    doc = SimpleDocTemplate(f"Factura_{num_factura}.pdf", pagesize=letter)
+    elementos = []
 
-    # Escribir los detalles en la factura
-    c.drawString(100, 750, "FACTURA")
-    c.drawString(100, 730, f"Cliente: {nombre_cliente}")
-    c.drawString(100, 710, f"NIT: {nit}")
-    c.drawString(100, 690, f"Número de Factura: {num_factura}")
-    c.drawString(100, 670, "Detalle del Producto:")
-    c.drawString(100, 650, f"Cantidad: {cantidad_producto}")
-    c.drawString(100, 630, f"Precio Unitario: Q{precio_producto}")
-    c.drawString(100, 610, f"Total: ${total}")
+    # Logo de la empresa
+    imagen_empresa = Image("30-AÑOS-AGREQUIMA.png", width=150, height=50)
+    imagen_empresa.drawHeight = 1.5 * inch * imagen_empresa.drawHeight / imagen_empresa.drawWidth
+    imagen_empresa.drawWidth = 1.5 * inch
+    elementos.append(imagen_empresa)
 
-    # Guardar el PDF de la factura
-    c.save()
+    # Título de la factura
+    elementos.append(Paragraph("FACTURA", estilo_titulo))
+
+    # Detalles del cliente y factura
+    detalles_cliente = [
+        ["Cliente:", nombre_cliente],
+        ["NIT:", nit],
+        ["Número de Factura:", num_factura],
+    ]
+    tabla_detalles_cliente = Table(detalles_cliente)
+    elementos.append(tabla_detalles_cliente)
+
+    # Detalle del producto
+    detalles_producto = [
+        ["Cantidad:", cantidad_producto],
+        ["Precio Unitario:", f"Q{precio_producto}"],
+        ["Total:", f"Q{total}"],
+    ]
+    tabla_detalles_producto = Table(detalles_producto)
+    elementos.append(tabla_detalles_producto)
+
+    # Lista de productos y precios
+    detalles_productos = [["Producto", "Precio"]]
+    for producto, precio in productos.items():
+        detalles_productos.append([producto, f"Q{precio}"])
+
+    tabla_productos = Table(detalles_productos)
+    tabla_productos.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                                         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                                         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                                         ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                                         ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+    elementos.append(tabla_productos)
+
+    # Espacios en blanco
+    elementos.append(Spacer(1, 10))
+    elementos.append(Paragraph(f"<b>Total:</b> Q{total}", estilo_encabezado))
+    elementos.append(Spacer(1, 50))
+    elementos.append(Paragraph("Firma ________________________", estilo_firma))
+
+    # Construir el PDF de la factura
+    doc.build(elementos)
 
 
 def update_new_facture():
@@ -137,17 +184,20 @@ def update_new_facture():
         nombre = cuadro_nombre.get()
         identificador = cuadro_contrasenia.get()
         celular = cuadro_celular.get()
-
         nombre1 = str(nombre)
         identificador1 = int(identificador)
         celular1 = int(celular)
         num_de_factura = int(random.randint(0, 999))
+        productos = {}
+        for x in range(celular1):
+            productos[f"Producto{x + 1}"] = 500
+
         if ventas.search_by_ID_ventas(num_de_factura) is not None:
             etiqueta_error_id = tkinter.Label(ventana3, text="El No. de factura ya existe",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
-            generar_factura(nombre1, identificador1, celular1, num_de_factura)
+            generar_factura(nombre1, identificador1, celular1, num_de_factura, productos)
             new_facture = Factura(nombre1, identificador1, celular1, num_de_factura)
             ventas.append(new_facture)
 
