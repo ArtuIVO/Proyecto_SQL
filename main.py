@@ -126,7 +126,7 @@ def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura, product
     elementos = []
 
     # Logo de la empresa
-    imagen_empresa = Image("30-AÑOS-AGREQUIMA.png", width=150, height=50)
+    imagen_empresa = Image("30-AÑOS-AGREQUIMA.png", width=150, height=150)
     imagen_empresa.drawHeight = 1.5 * inch * imagen_empresa.drawHeight / imagen_empresa.drawWidth
     imagen_empresa.drawWidth = 1.5 * inch
     elementos.append(imagen_empresa)
@@ -466,6 +466,128 @@ def delete_customer():
     ventana3.mainloop()
 
 
+def edit_customer():
+    global conn, cursor
+
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
+    def obtener_datos():
+
+        identificador = cuadro_contrasenia.get()
+
+        identificador1 = int(identificador)
+
+        if clientes.search_by_ID_cleinte(identificador1) is None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT no existe",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        else:
+            global etiqueta_de_eliminacion, boton_si, boton_no
+            etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
+                                                                   f"{clientes.search_by_ID_cleinte(identificador1).data}\n"
+                                                                   f"Desea editar al cliente ? Si / No")
+            etiqueta_de_eliminacion.pack()
+
+            def boton_si():
+
+                global conn, cursor
+
+                def obtener_datos1():
+                    nombre = cuadro_nombre.get()
+                    identificador = cuadro_contrasenia.get()
+                    celular = cuadro_celular.get()
+
+                    nombre1 = str(nombre)
+                    nit = int(identificador)
+                    celular1 = int(celular)
+                    clientes.deleate_by_ID(nit)
+                    cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (nit,))
+                    conn.commit()
+                    new_customer = Cliente(nombre1, nit, celular1)
+                    clientes.append(new_customer)
+                    cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
+                                   (nombre, nit, celular))
+                    conn.commit()
+
+                    print(new_customer)
+                    etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
+                                                        font=("times new roman", 12))
+                    etiqueta_aceptacion.pack()
+                    etiqueta_cliente_nuevo = tkinter.Label(ventana3, text="Cliente editado correctamente:\n"
+                                                                          f"{new_customer}",
+                                                           font=("times new roman", 12))
+                    etiqueta_cliente_nuevo.pack()
+
+                if clientes.search_by_ID_cleinte(identificador1) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El NIT ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    etiqueta_edit = tkinter.Label(ventana3, text="Ahora ya le puede cambiar el nombre, nit y celular")
+                    etiqueta_edit.pack()
+                    etiqueta_nombre = tkinter.Label(ventana3, text="Nombre:", font=("times new roman", 12))
+                    etiqueta_nombre.pack()
+                    cuadro_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
+                    cuadro_nombre.pack(pady=10)
+                    etiqueta_contrasenia = tkinter.Label(ventana3, text="NIT:", font=("times new roman", 12))
+                    etiqueta_contrasenia.pack()
+                    cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
+                    cuadro_contrasenia.pack(pady=10)
+                    etiqueta_ID = tkinter.Label(ventana3, text="Celular:", font=("times new roman", 12))
+                    etiqueta_ID.pack()
+                    cuadro_celular = tkinter.Entry(ventana3, font=("times new roman", 12))
+                    cuadro_celular.pack(pady=10)
+                    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos1,
+                                                         bg="blue", fg="white",
+                                                         width=15, height=2, bd=12)
+                    boton_obtener_datos.pack(pady=10)
+                    limpiar_datos()
+
+            def boton_no():
+                if clientes.search_by_ID_cleinte(identificador1) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El NIT ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no editado",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
+                    limpiar_datos()
+
+            boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_no.pack(pady=10)
+
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el NIT de su cliente a editar: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+    etiqueta_contrasenia = tkinter.Label(ventana3, text="Identificador:", font=("times new roman", 12))
+    etiqueta_contrasenia.pack()
+    cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_contrasenia.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
+
+
 def update_new_user():
     global conn, cursor
 
@@ -697,6 +819,9 @@ def menu_de_clientes():
     boton4 = tkinter.Button(ventana4, text="Mostrar todos los clientes", command=mostrar_clientes, bg="lime",
                             fg="black", width=15, height=2, bd=12)
     boton4.pack(pady=5)
+    boton5 = tkinter.Button(ventana4, text="Editar un usuario", command=edit_customer, bg="green", fg="black", width=15,
+                            height=2, bd=12)
+    boton5.pack(pady=5)
 
     def regresar2():
         ventana4.destroy()
