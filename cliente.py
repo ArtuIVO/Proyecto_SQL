@@ -6,5 +6,5 @@ class Cliente:
 
     def __str__(self):
         return (f"El cliente se llama: {self.nombre}\n"
-                f"ID del cliente es: {self.identificador}\n"
+                f"NIT del cliente es: {self.identificador}\n"
                 f"El número telefonico es: {self.celular}")
