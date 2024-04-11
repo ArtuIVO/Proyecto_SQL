@@ -1,17 +1,18 @@
 import random
 import tkinter
+
 import mysql.connector
-from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
-from usuario import Usuarios
-from list import Lista
+
 from cliente import Cliente
-from venta import Factura
+from list import Lista
 from producto import Producto
+from usuario import Usuarios
+from venta import Factura
 
 usuarios = Lista()
 clientes = Lista()
@@ -418,7 +419,7 @@ def delete_customer():
                 else:
                     cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
                     conn.commit()
-                    clientes.deleate_by_ID(identificador)
+                    clientes.delete_by_ID(identificador)
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente eliminado",
                                                        font=("times new roman", 12))
                     etiqueta_eliminado.pack()
@@ -469,6 +470,7 @@ def delete_customer():
 def edit_customer():
     global conn, cursor
 
+    ventana3 = tkinter.Toplevel(ventana)
     def limpiar_datos():
         etiqueta_de_eliminacion.pack_forget()
         boton_si.pack_forget()
@@ -492,60 +494,8 @@ def edit_customer():
             etiqueta_de_eliminacion.pack()
 
             def boton_si():
-
-                global conn, cursor
-
-                def obtener_datos1():
-                    nombre = cuadro_nombre.get()
-                    identificador = cuadro_contrasenia.get()
-                    celular = cuadro_celular.get()
-
-                    nombre1 = str(nombre)
-                    nit = int(identificador)
-                    celular1 = int(celular)
-                    clientes.deleate_by_ID(nit)
-                    cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (nit,))
-                    conn.commit()
-                    new_customer = Cliente(nombre1, nit, celular1)
-                    clientes.append(new_customer)
-                    cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
-                                   (nombre, nit, celular))
-                    conn.commit()
-
-                    print(new_customer)
-                    etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
-                                                        font=("times new roman", 12))
-                    etiqueta_aceptacion.pack()
-                    etiqueta_cliente_nuevo = tkinter.Label(ventana3, text="Cliente editado correctamente:\n"
-                                                                          f"{new_customer}",
-                                                           font=("times new roman", 12))
-                    etiqueta_cliente_nuevo.pack()
-
-                if clientes.search_by_ID_cleinte(identificador1) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El NIT ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
-                else:
-                    etiqueta_edit = tkinter.Label(ventana3, text="Ahora ya le puede cambiar el nombre, nit y celular")
-                    etiqueta_edit.pack()
-                    etiqueta_nombre = tkinter.Label(ventana3, text="Nombre:", font=("times new roman", 12))
-                    etiqueta_nombre.pack()
-                    cuadro_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
-                    cuadro_nombre.pack(pady=10)
-                    etiqueta_contrasenia = tkinter.Label(ventana3, text="NIT:", font=("times new roman", 12))
-                    etiqueta_contrasenia.pack()
-                    cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
-                    cuadro_contrasenia.pack(pady=10)
-                    etiqueta_ID = tkinter.Label(ventana3, text="Celular:", font=("times new roman", 12))
-                    etiqueta_ID.pack()
-                    cuadro_celular = tkinter.Entry(ventana3, font=("times new roman", 12))
-                    cuadro_celular.pack(pady=10)
-                    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos1,
-                                                         bg="blue", fg="white",
-                                                         width=15, height=2, bd=12)
-                    boton_obtener_datos.pack(pady=10)
-                    limpiar_datos()
+                editar_cliente(identificador1)
+                limpiar_datos()
 
             def boton_no():
                 if clientes.search_by_ID_cleinte(identificador1) is None:
@@ -566,8 +516,67 @@ def edit_customer():
                                       height=2, bd=12)
             boton_no.pack(pady=10)
 
-    ventana3 = tkinter.Tk()
-    ventana3.geometry("700x700")
+            def editar_cliente(identificador):
+                global conn, cursor
+
+                ventana_editar = tkinter.Toplevel(ventana)
+
+                def limpiar_datos():
+                    etiqueta_nombre.pack_forget()
+                    etiqueta_contrasenia.pack_forget()
+                    etiqueta_celular.pack_forget()
+                    cuadro_nombre.pack_forget()
+                    cuadro_contrasenia.pack_forget()
+                    cuadro_celular.pack_forget()
+                    boton_editar.pack_forget()
+
+                def guardar_edicion():
+                    nombre = cuadro_nombre.get()
+                    nit = cuadro_contrasenia.get()
+                    celular = cuadro_celular.get()
+
+                    nombre1 = str(nombre)
+                    nit1 = int(nit)
+                    celular1 = int(celular)
+
+                    # Eliminar el cliente existente
+                    clientes.delete_by_ID(identificador)
+                    cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
+                    conn.commit()
+
+                    # Agregar el cliente editado
+                    new_customer = Cliente(nombre1, nit1, celular1)
+                    clientes.append(new_customer)
+                    cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
+                                   (nombre, nit, celular))
+                    conn.commit()
+
+                    print(new_customer)
+                    etiqueta_aceptacion = tkinter.Label(ventana_editar, text="Datos aceptados correctamente",
+                                                        font=("times new roman", 12))
+                    etiqueta_aceptacion.pack()
+                    etiqueta_cliente_nuevo = tkinter.Label(ventana_editar, text="Cliente editado correctamente:\n"
+                                                                                f"{new_customer}",
+                                                           font=("times new roman", 12))
+                    etiqueta_cliente_nuevo.pack()
+                    limpiar_datos()
+
+                etiqueta_nombre = tkinter.Label(ventana_editar, text="Nombre:", font=("times new roman", 12))
+                etiqueta_nombre.pack()
+                cuadro_nombre = tkinter.Entry(ventana_editar, font=("times new roman", 12))
+                cuadro_nombre.pack(pady=10)
+                etiqueta_contrasenia = tkinter.Label(ventana_editar, text="NIT:", font=("times new roman", 12))
+                etiqueta_contrasenia.pack()
+                cuadro_contrasenia = tkinter.Entry(ventana_editar, font=("times new roman", 12))
+                cuadro_contrasenia.pack(pady=10)
+                etiqueta_celular = tkinter.Label(ventana_editar, text="Celular:", font=("times new roman", 12))
+                etiqueta_celular.pack()
+                cuadro_celular = tkinter.Entry(ventana_editar, font=("times new roman", 12))
+                cuadro_celular.pack(pady=10)
+                boton_editar = tkinter.Button(ventana_editar, text="Guardar Edición", command=guardar_edicion,
+                                              bg="blue", fg="white", width=15, height=2, bd=12)
+                boton_editar.pack(pady=10)
+
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el NIT de su cliente a editar: ",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
@@ -585,8 +594,8 @@ def edit_customer():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
+    ventana3.mainloop()
 
 def update_new_user():
     global conn, cursor

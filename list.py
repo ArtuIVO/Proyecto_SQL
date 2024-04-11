@@ -142,7 +142,7 @@ class Lista:
 
         raise Exception("The position is not exist")
 
-    def deleate_by_ID(self, data: int):
+    def delete_by_ID(self, data: int):
         current = self.head
         previous = None
 
