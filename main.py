@@ -479,8 +479,38 @@ def edit_customer():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
 
+        def actualizar_datos(identificador, nuevo_nombre, nuevo_telefono, nuevo_nit):
+            nuevo_nombre = str(nuevo_nombre)
+            nuevo_telefono = int(nuevo_telefono)
+            nuevo_nit = int(nuevo_nit)
+
+            if clientes.search_by_ID_cleinte(identificador) is None:
+                etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
+                                                  font=("times new roman", 12))
+                etiqueta_error_id.pack()
+            elif clientes.search_by_ID_cleinte(nuevo_nit) is not None:
+                etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado ya existe, vuelva a intentarlo",
+                                                  font=("times new roman", 12))
+                etiqueta_error_id.pack()
+
+            elif clientes.search_by_cel(nuevo_telefono) is not None:
+                etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe, vuelva a intentarlo",
+                                                  font=("times new roman", 12))
+                etiqueta_error_id.pack()
+
+            else:
+                cursor.execute("UPDATE Clientes SET nombre = %s, celular = %s, identificador = %s",
+                               (nuevo_nombre, nuevo_telefono, nuevo_nit))
+                conn.commit()
+                clientes.search_by_ID_cleinte(identificador).data.nombre = nuevo_nombre
+                clientes.search_by_ID_cleinte(identificador).data.celular = nuevo_telefono
+                clientes.search_by_ID_cleinte(identificador).data.identificador = nuevo_nit
+                etiqueta_editado = tkinter.Label(ventana3, text="Cliente editado", font=("times new roman", 12))
+                etiqueta_editado.pack()
+                limpiar_datos()
+
         if clientes.search_by_ID_cleinte(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
+            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado ya existe, vuelva a intentarlo",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
@@ -514,37 +544,6 @@ def edit_customer():
                                                                                                           cuadro_nuevo_nit.get()),
                                                bg="blue", fg="white", width=15, height=2, bd=12)
                 boton_aceptar.pack(pady=10)
-
-            def actualizar_datos(identificador, nuevo_nombre, nuevo_telefono, nuevo_nit):
-                nuevo_nombre = str(nuevo_nombre)
-                nuevo_telefono = int(nuevo_telefono)
-                nuevo_nit = int(nuevo_nit)
-
-                if clientes.search_by_ID_cleinte(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
-                elif clientes.search_by_ID_cleinte(nuevo_nit) is not None:
-                    etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado ya existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
-
-                elif clientes.search_by_cel(nuevo_telefono) is not None:
-                    etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
-
-                else:
-                    limpiar_datos()
-                    cursor.execute("UPDATE Clientes SET nombre = %s, celular = %s WHERE identificador = %s",
-                                   (nuevo_nombre, nuevo_telefono, nuevo_nit))
-                    conn.commit()
-                    clientes.search_by_ID_cleinte(identificador).data.nombre = nuevo_nombre
-                    clientes.search_by_ID_cleinte(identificador).data.celular = nuevo_telefono
-                    clientes.search_by_ID_cleinte(identificador).data.identificador = nuevo_nit
-                    etiqueta_editado = tkinter.Label(ventana3, text="Cliente editado", font=("times new roman", 12))
-                    etiqueta_editado.pack()
-
 
             def boton_no():
                 if clientes.search_by_ID_cleinte(identificador) is None:
