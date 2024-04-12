@@ -475,6 +475,7 @@ def edit_customer():
         boton_si.pack_forget()
         boton_no.pack_forget()
 
+
     def obtener_datos():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
