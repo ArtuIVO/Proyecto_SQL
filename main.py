@@ -20,6 +20,8 @@ ventas = Lista()
 productos = Lista()
 producto0 = Producto("Cursos Libres", 50, 500)
 productos.append(producto0)
+producto1 = Producto("Cursos Privados", 25, 750)
+productos.append(producto1)
 
 ventana = tkinter.Tk()
 ventana.geometry("900x700")
@@ -345,13 +347,12 @@ def update_new_customer():
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
-            new_customer = Cliente(nombre1, identificador1, celular1)
-            clientes.append(new_customer)
-
             cursor = conn.cursor()
             cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
-                           (nombre, identificador, celular))
+                           (nombre1, identificador1, celular1))
             conn.commit()
+            new_customer = Cliente(nombre1, identificador1, celular1)
+            clientes.append(new_customer)
 
             print(new_customer)
             etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
@@ -475,7 +476,6 @@ def edit_customer():
         boton_si.pack_forget()
         boton_no.pack_forget()
 
-
     def obtener_datos():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
@@ -493,12 +493,10 @@ def edit_customer():
                 etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado ya existe, vuelva a intentarlo",
                                                   font=("times new roman", 12))
                 etiqueta_error_id.pack()
-
             elif clientes.search_by_cel(nuevo_telefono) is not None:
                 etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe, vuelva a intentarlo",
                                                   font=("times new roman", 12))
                 etiqueta_error_id.pack()
-
             else:
                 cursor.execute("UPDATE Clientes SET nombre = %s, celular = %s, identificador = %s",
                                (nuevo_nombre, nuevo_telefono, nuevo_nit))
@@ -508,7 +506,6 @@ def edit_customer():
                 clientes.search_by_ID_cleinte(identificador).data.identificador = nuevo_nit
                 etiqueta_editado = tkinter.Label(ventana3, text="Cliente editado", font=("times new roman", 12))
                 etiqueta_editado.pack()
-                limpiar_datos()
 
         if clientes.search_by_ID_cleinte(identificador) is None:
             etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado ya existe, vuelva a intentarlo",
@@ -539,10 +536,11 @@ def edit_customer():
                 cuadro_nuevo_nit = tkinter.Entry(ventana3, font=("times new roman", 12))
                 cuadro_nuevo_nit.pack(pady=10)
 
-                boton_aceptar = tkinter.Button(ventana3, text="Aceptar", command=lambda: actualizar_datos(identificador,
-                                                                                                          cuadro_nuevo_nombre.get(),
-                                                                                                          cuadro_nuevo_cel.get(),
-                                                                                                          cuadro_nuevo_nit.get()),
+                boton_aceptar = tkinter.Button(ventana3, text="Aceptar",
+                                               command=lambda: actualizar_datos(identificador,
+                                                                                cuadro_nuevo_nombre.get(),
+                                                                                cuadro_nuevo_cel.get(),
+                                                                                cuadro_nuevo_nit.get()),
                                                bg="blue", fg="white", width=15, height=2, bd=12)
                 boton_aceptar.pack(pady=10)
 
@@ -856,6 +854,45 @@ def menu_de_facturas():
     boton_regresar.pack(pady=5)
     ventana4.mainloop()
 
+def compra():
+    ventana4 = tkinter.Tk()
+    ventana4.geometry("700x700")
+
+def ver_productos():
+    ventana4 = tkinter.Tk()
+    ventana4.geometry("700x700")
+    etiqueta4 = tkinter.Label(ventana4, text=f"{productos.transversal()}")
+    etiqueta4.pack()
+
+    def regresar1():
+        ventana4.destroy()
+
+    boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana4.mainloop()
+
+
+def menu_de_productos():
+    ventana4 = tkinter.Tk()
+    ventana4.geometry("700x700")
+    etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
+    etiqueta2.pack(pady=20)
+    boton2 = tkinter.Button(ventana4, text="Ver productos", command=ver_productos, bg="lime",
+                            fg="black", width=15, height=2, bd=12)
+    boton2.pack(pady=5)
+    boton3 = tkinter.Button(ventana4, text="Hacer una compra", command=compra, bg="green", fg="black",
+                            width=15, height=2, bd=12)
+    boton3.pack(pady=5)
+
+    def regresar2():
+        ventana4.destroy()
+
+    boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana4.mainloop()
+
 
 def vermenu():
     ventana2 = tkinter.Tk()
@@ -871,6 +908,9 @@ def vermenu():
     boton4 = tkinter.Button(ventana2, text="Ver menú de facturas", command=menu_de_facturas, bg="navy", fg="white",
                             width=15, height=2, bd=12)
     boton4.pack(pady=5)
+    boton5 = tkinter.Button(ventana2, text="Ver menú de productos", command=menu_de_productos, bg="navy", fg="white",
+                            width=15, height=2, bd=12)
+    boton5.pack(pady=5)
 
     boton_mostrar_tablas = tkinter.Button(ventana2, text="Mostrar Tablas", command=mostrar_tablas, bg="purple",
                                           fg="white", width=15, height=2, bd=12)
@@ -890,7 +930,7 @@ def salir():
     ventana.destroy()
 
 
-etiqueta = tkinter.Label(ventana, text="BIENVENIDO AL PROGRAMA DE ADMINISTRACION DE USUARIOS Y CLIENTES",
+etiqueta = tkinter.Label(ventana, text="BIENVENIDO AL MENÚ",
                          font=("times new roman", 14))
 etiqueta.pack(pady=20)
 boton0 = tkinter.Button(ventana, text="Ver el menú", command=vermenu, font=("times new roman", 12), bg="blue",
