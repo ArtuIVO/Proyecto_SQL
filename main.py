@@ -519,7 +519,7 @@ def edit_customer():
         identificador = int(identificador)
 
         if clientes.search_by_ID_cleinte(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado ya existe, vuelva a intentarlo",
+            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:

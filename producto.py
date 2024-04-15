@@ -7,4 +7,4 @@ class Producto:
     def __str__(self):
         return (f"Nombre del curso: {self.nombre}\n"
                 f"Cantindad del cursos disponibles: {self.stock}\n"
-                f"Precio del producto: {self.precio}\n")
+                f"Precio del producto: Q{self.precio}\n")
