@@ -974,7 +974,7 @@ def menu_de_clientes():
     boton4 = tkinter.Button(ventana4, text="Mostrar todos los clientes", command=mostrar_clientes, bg="lime",
                             fg="black", width=15, height=2, bd=12)
     boton4.pack(pady=5)
-    boton5 = tkinter.Button(ventana4, text="Editar un usuario", command=edit_customer, bg="green", fg="black", width=15,
+    boton5 = tkinter.Button(ventana4, text="Editar clientes", command=edit_customer, bg="green", fg="black", width=15,
                             height=2, bd=12)
     boton5.pack(pady=5)
 
