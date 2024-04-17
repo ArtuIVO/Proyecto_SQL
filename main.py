@@ -14,15 +14,11 @@ from producto import Producto
 from usuario import Usuarios
 from venta import Factura
 
+
 usuarios = Lista()
 clientes = Lista()
 ventas = Lista()
 productos = Lista()
-producto0 = Producto("Cursos Libres", 50, 500)
-productos.append(producto0)
-producto1 = Producto("Cursos Privados", 25, 750)
-productos.append(producto1)
-
 ventana = tkinter.Tk()
 ventana.geometry("900x700")
 
@@ -55,6 +51,15 @@ cursor.execute("""
         nombre LONGTEXT,
         tel INT,
         cantidad INT
+    );
+""")
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS Productos (
+        num_producto INT AUTO_INCREMENT PRIMARY KEY,
+        nombre LONGTEXT,
+        stock INT,
+        precio INT
     );
 """)
 conn.commit()
@@ -106,6 +111,16 @@ def mostrar_tablas():
         for venta_info in ventas_info:
             etiqueta_cliente = tkinter.Label(ventana_tablas, text=venta_info)
             etiqueta_cliente.pack()
+
+        cursor.execute("SELECT * FROM Producto")
+        productos_info = cursor.fetchall()
+
+        etiqueta_prodcuto = tkinter.Label(ventana_tablas, text="Información de Producto:")
+        etiqueta_prodcuto.pack()
+
+        for productos_info in productos_info:
+            etiqueta_prodcuto = tkinter.Label(ventana_tablas, text=productos_info)
+            etiqueta_prodcuto.pack()
 
     except mysql.connector.Error as e:
         print(f"Error al obtener las tablas: {e}")
@@ -485,7 +500,6 @@ def edit_customer():
         cuadro_nuevo_nit.pack_forget()
         boton_aceptar.pack_forget()
 
-
     def actualizar_datos(identificador, nuevo_nombre, nuevo_telefono, nuevo_nit):
         nuevo_nombre = str(nuevo_nombre)
         nuevo_telefono = int(nuevo_telefono)
@@ -526,7 +540,7 @@ def edit_customer():
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
                                                                    f"{clientes.search_by_ID_cleinte(identificador).data}\n"
-                                                                   f"Desea editar al usuario ? Si / No")
+                                                                   f"Desea editar al cliente ? Si / No")
             etiqueta_de_eliminacion.pack()
 
             def boton_si():
@@ -555,7 +569,6 @@ def edit_customer():
                                                                                 cuadro_nuevo_nit.get()),
                                                bg="blue", fg="white", width=15, height=2, bd=12)
                 boton_aceptar.pack(pady=10)
-
 
             def boton_no():
                 if clientes.search_by_ID_cleinte(identificador) is None:
@@ -755,6 +768,132 @@ def mostrar_usuarios():
     ventana3.mainloop()
 
 
+def edit_user():
+    global conn, cursor
+
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
+    def limpiar_datos_actualizados():
+        etiqueta_nuevo_nombre.pack_forget()
+        cuadro_nuevo_nombre.pack_forget()
+        etiqueta_nuevo_cel.pack_forget()
+        cuadro_nuevo_cel.pack_forget()
+        etiqueta_nuevo_nit.pack_forget()
+        cuadro_nuevo_nit.pack_forget()
+        boton_aceptar.pack_forget()
+
+    def actualizar_datos(identificador, nuevo_nombre, nuevo_telefono, nuevo_nit):
+        nuevo_nombre = str(nuevo_nombre)
+        nuevo_telefono = str(nuevo_telefono)
+        nuevo_nit = int(nuevo_nit)
+
+        if usuarios.search_by_ID_usuario(identificador) is None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        elif usuarios.search_by_ID_usuario(nuevo_nit) is not None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado ya existe, vuelva a intentarlo",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        else:
+            cursor.execute("UPDATE Usuarios SET nombre = %s, contrasenia = %s, identificador = %s",
+                           (nuevo_nombre, nuevo_telefono, nuevo_nit))
+            conn.commit()
+            usuarios.search_by_ID_usuario(identificador).data.nombre = nuevo_nombre
+            usuarios.search_by_ID_usuario(identificador).data.contrasenia = nuevo_telefono
+            usuarios.search_by_ID_usuario(identificador).data.identificador = nuevo_nit
+            etiqueta_editado = tkinter.Label(ventana3, text="Usuario editado", font=("times new roman", 12))
+            etiqueta_editado.pack()
+            limpiar_datos_actualizados()
+
+    def obtener_datos():
+        identificador = cuadro_ID.get()
+        identificador = int(identificador)
+
+        if usuarios.search_by_ID_usuario(identificador) is None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
+                                              font=("times new roman", 12))
+            etiqueta_error_id.pack()
+        else:
+            global etiqueta_de_eliminacion, boton_si, boton_no
+            etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
+                                                                   f"{usuarios.search_by_ID_usuario(identificador).data}\n"
+                                                                   f"Desea editar al usuario ? Si / No")
+            etiqueta_de_eliminacion.pack()
+
+            def boton_si():
+                limpiar_datos()
+                global etiqueta_nuevo_nombre, cuadro_nuevo_nombre, etiqueta_nuevo_cel, cuadro_nuevo_cel, etiqueta_nuevo_nit, cuadro_nuevo_nit, boton_aceptar
+                etiqueta_nuevo_nombre = tkinter.Label(ventana3, text="Ingrese el nuevo nombre: ",
+                                                      font=("times new roman", 12))
+                etiqueta_nuevo_nombre.pack()
+                cuadro_nuevo_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
+                cuadro_nuevo_nombre.pack(pady=10)
+                etiqueta_nuevo_cel = tkinter.Label(ventana3, text="Ingrese la nueva contraseña: ",
+                                                   font=("times new roman", 12))
+                etiqueta_nuevo_cel.pack()
+                cuadro_nuevo_cel = tkinter.Entry(ventana3, font=("times new roman", 12))
+                cuadro_nuevo_cel.pack(pady=10)
+                etiqueta_nuevo_nit = tkinter.Label(ventana3, text="Ingrese el nuevo ID: ",
+                                                   font=("times new roman", 12))
+                etiqueta_nuevo_nit.pack()
+                cuadro_nuevo_nit = tkinter.Entry(ventana3, font=("times new roman", 12))
+                cuadro_nuevo_nit.pack(pady=10)
+
+                boton_aceptar = tkinter.Button(ventana3, text="Aceptar",
+                                               command=lambda: actualizar_datos(identificador,
+                                                                                cuadro_nuevo_nombre.get(),
+                                                                                cuadro_nuevo_cel.get(),
+                                                                                cuadro_nuevo_nit.get()),
+                                               bg="blue", fg="white", width=15, height=2, bd=12)
+                boton_aceptar.pack(pady=10)
+
+            def boton_no():
+                if usuarios.search_by_ID_usuario(identificador) is None:
+                    etiqueta_error_id = tkinter.Label(ventana3,
+                                                      text="El ID ingresado no existe, vuelva a intentarlo",
+                                                      font=("times new roman", 12))
+                    etiqueta_error_id.pack()
+                else:
+                    etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no editado",
+                                                       font=("times new roman", 12))
+                    etiqueta_eliminado.pack()
+                    limpiar_datos()
+
+            boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_no.pack(pady=10)
+
+    ventana3 = tkinter.Tk()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del usuario a editar: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta_ID = tkinter.Label(ventana3, text="ID:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_ID.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Aceptar", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+
+    ventana3.mainloop()
+
+
 def mostrar_facturas():
     ventana3 = tkinter.Tk()
     ventana3.geometry("700x700")
@@ -807,6 +946,10 @@ def menu_de_usuarios():
     boton4 = tkinter.Button(ventana4, text="Mostrar todos los usuarios", command=mostrar_usuarios, bg="lime",
                             fg="black", width=15, height=2, bd=12)
     boton4.pack(pady=5)
+
+    boton6 = tkinter.Button(ventana4, text="Editar usuarios", command=edit_user, bg="green",
+                            fg="black", width=15, height=2, bd=12)
+    boton6.pack(pady=5)
 
     def regresar2():
         ventana4.destroy()
@@ -867,13 +1010,21 @@ def menu_de_facturas():
     boton_regresar.pack(pady=5)
     ventana4.mainloop()
 
+
 def compra():
     ventana4 = tkinter.Tk()
     ventana4.geometry("700x700")
+    etiqueta_compra = tkinter.Label(ventana4, text="Que desea comprar?",
+                                    font=("times new roman", 14))
+    etiqueta_compra.pack(pady=20)
+
 
 def ver_productos():
     ventana4 = tkinter.Tk()
     ventana4.geometry("700x700")
+    etiqueta_productos = tkinter.Label(ventana4, text="Productos actuales:",
+                                       font=("times new roman", 14))
+    etiqueta_productos.pack(pady=20)
     etiqueta4 = tkinter.Label(ventana4, text=f"{productos.transversal()}")
     etiqueta4.pack()
 
@@ -884,6 +1035,14 @@ def ver_productos():
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
     ventana4.mainloop()
+
+
+def agregar_producto():
+    pass
+
+
+def editar_producto():
+    pass
 
 
 def menu_de_productos():
@@ -897,6 +1056,12 @@ def menu_de_productos():
     boton3 = tkinter.Button(ventana4, text="Hacer una compra", command=compra, bg="green", fg="black",
                             width=15, height=2, bd=12)
     boton3.pack(pady=5)
+    boton4 = tkinter.Button(ventana4, text="Agregar producto", command=agregar_producto, bg="lime", fg="black",
+                            width=15, height=2, bd=12)
+    boton4.pack(pady=5)
+    boton5 = tkinter.Button(ventana4, text="Editar producto", command=editar_producto, bg="lime", fg="black",
+                            width=15, height=2, bd=12)
+    boton5.pack(pady=5)
 
     def regresar2():
         ventana4.destroy()
@@ -918,7 +1083,7 @@ def vermenu():
     boton3 = tkinter.Button(ventana2, text="Ver menú de clientes", command=menu_de_clientes, bg="orange", fg="white",
                             width=15, height=2, bd=12)
     boton3.pack(pady=5)
-    boton4 = tkinter.Button(ventana2, text="Ver menú de facturas", command=menu_de_facturas, bg="navy", fg="white",
+    boton4 = tkinter.Button(ventana2, text="Ver menú de facturas", command=menu_de_facturas, bg="violet", fg="white",
                             width=15, height=2, bd=12)
     boton4.pack(pady=5)
     boton5 = tkinter.Button(ventana2, text="Ver menú de productos", command=menu_de_productos, bg="navy", fg="white",
