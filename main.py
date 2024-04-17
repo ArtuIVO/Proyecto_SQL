@@ -1119,3 +1119,4 @@ boton1 = tkinter.Button(ventana, text="Salir", command=salir, font=("times new r
 boton1.pack(pady=5)
 
 ventana.mainloop()
+
