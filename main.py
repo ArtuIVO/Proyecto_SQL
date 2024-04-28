@@ -354,13 +354,9 @@ def update_new_customer():
         celular1 = int(celular)
 
         if clientes.search_by_ID_cleinte(identificador1) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         elif clientes.search_by_cel(celular1) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un número de celular válido.")
         else:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
@@ -416,9 +412,7 @@ def delete_customer():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
         if clientes.search_by_ID_cleinte(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
@@ -428,10 +422,7 @@ def delete_customer():
 
             def boton_si():
                 if clientes.search_by_ID_cleinte(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El ID ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                    messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
                     cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
                     conn.commit()
@@ -443,10 +434,7 @@ def delete_customer():
 
             def boton_no():
                 if clientes.search_by_ID_cleinte(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El ID ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                    messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no eliminado",
                                                        font=("times new roman", 12))
@@ -506,17 +494,11 @@ def edit_customer():
         nuevo_nit = int(nuevo_nit)
 
         if clientes.search_by_ID_cleinte(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         elif clientes.search_by_ID_cleinte(nuevo_nit) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado ya existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
         elif clientes.search_by_cel(nuevo_telefono) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El celular ya existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un número de celular válido.")
         else:
             cursor.execute("UPDATE Clientes SET nombre = %s, celular = %s, identificador = %s",
                            (nuevo_nombre, nuevo_telefono, nuevo_nit))
@@ -533,9 +515,7 @@ def edit_customer():
         identificador = int(identificador)
 
         if clientes.search_by_ID_cleinte(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
@@ -572,10 +552,7 @@ def edit_customer():
 
             def boton_no():
                 if clientes.search_by_ID_cleinte(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El NIT ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                    messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
                 else:
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no editado",
                                                        font=("times new roman", 12))
@@ -682,9 +659,7 @@ def delete_user():
         identificador = cuadro_ID.get()
         identificador = int(identificador)
         if usuarios.search_by_ID_usuario(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
@@ -694,10 +669,7 @@ def delete_user():
 
             def boton_si():
                 if usuarios.search_by_ID_usuario(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El ID ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                    messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
                     cursor.execute("DELETE FROM Usuarios WHERE identificador = %s", (identificador,))
                     conn.commit()
@@ -709,10 +681,7 @@ def delete_user():
 
             def boton_no():
                 if usuarios.search_by_ID_usuario(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El ID ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                    messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no eliminado",
                                                        font=("times new roman", 12))
@@ -791,13 +760,9 @@ def edit_user():
         nuevo_nit = int(nuevo_nit)
 
         if usuarios.search_by_ID_usuario(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado no existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         elif usuarios.search_by_ID_usuario(nuevo_nit) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ingresado ya existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             cursor.execute("UPDATE Usuarios SET nombre = %s, contrasenia = %s, identificador = %s",
                            (nuevo_nombre, nuevo_telefono, nuevo_nit))
@@ -814,9 +779,7 @@ def edit_user():
         identificador = int(identificador)
 
         if usuarios.search_by_ID_usuario(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El NIT ingresado no existe, vuelva a intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
@@ -853,10 +816,7 @@ def edit_user():
 
             def boton_no():
                 if usuarios.search_by_ID_usuario(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El ID ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                    messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no editado",
                                                        font=("times new roman", 12))
