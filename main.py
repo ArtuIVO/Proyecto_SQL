@@ -1,5 +1,6 @@
 import random
 import tkinter
+from tkinter import messagebox
 
 import mysql.connector
 from reportlab.lib import colors
@@ -13,7 +14,6 @@ from list import Lista
 from producto import Producto
 from usuario import Usuarios
 from venta import Factura
-
 
 usuarios = Lista()
 clientes = Lista()
@@ -1108,15 +1108,51 @@ def salir():
     ventana.destroy()
 
 
-etiqueta = tkinter.Label(ventana, text="BIENVENIDO AL MENÚ",
-                         font=("times new roman", 14))
-etiqueta.pack(pady=20)
-boton0 = tkinter.Button(ventana, text="Ver el menú", command=vermenu, font=("times new roman", 12), bg="blue",
-                        fg="white", width=15, height=2, bd=12)
-boton0.pack(pady=5)
-boton1 = tkinter.Button(ventana, text="Salir", command=salir, font=("times new roman", 12), bg="red", fg="black",
-                        width=15, height=2, bd=12)
-boton1.pack(pady=5)
+def obtener_datos1():
+    ventana2 = tkinter.Tk()
+    ventana2.geometry("900x700")
+    identificador = int(cuadro_login.get())
+    consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
+    cursor.execute(consulta, (identificador,))
+    registro = cursor.fetchone()
 
+    def salir():
+        ventana2.destroy()
+
+    if usuarios.search_by_ID_usuario(identificador) is None:
+        if registro:
+            etiqueta = tkinter.Label(ventana2, text="BIENVENIDO AL MENÚ",
+                                     font=("times new roman", 14))
+            etiqueta.pack(pady=20)
+            a = (registro[1])
+            etiqueta = tkinter.Label(ventana2, text=a,
+                                     font=("times new roman", 14))
+            etiqueta.pack(pady=20)
+
+            boton0 = tkinter.Button(ventana2, text="Ver el menú", command=vermenu, font=("times new roman", 12),
+                                    bg="blue",
+                                    fg="white", width=15, height=2, bd=12)
+            boton0.pack(pady=5)
+            boton1 = tkinter.Button(ventana2, text="Salir", command=salir, font=("times new roman", 12), bg="red",
+                                    fg="black",
+                                    width=15, height=2, bd=12)
+            boton1.pack(pady=5)
+        else:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+    else:
+        messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+
+
+etiqueta_login = tkinter.Label(ventana, text="Ingrese su ID por favor", font=("times new roman", 14))
+etiqueta_login.pack(pady=20)
+etiqueta_ID = tkinter.Label(ventana, text="ID:", font=("times new roman", 12))
+etiqueta_ID.pack()
+cuadro_login = tkinter.Entry(ventana, font=("times new roman", 12))
+cuadro_login.pack(pady=10)
+boton_obtener_datos = tkinter.Button(ventana, text="Aceptar", command=obtener_datos1, bg="blue", fg="white",
+                                     width=15, height=2, bd=12)
+boton_obtener_datos.pack(pady=10)
+boton_salir = tkinter.Button(ventana, text="Salir", command=salir, bg="red", fg="white",
+                             width=15, height=2, bd=12)
+boton_salir.pack(pady=10)
 ventana.mainloop()
-
