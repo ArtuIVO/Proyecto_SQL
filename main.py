@@ -229,7 +229,7 @@ def update_new_facture():
                                                 font=("times new roman", 12))
             etiqueta_aceptacion.pack()
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre del cliente, número de telefono y cantidad del "
                                              "producto comprado: ",
@@ -317,7 +317,7 @@ def delete_facture():
                                       height=2, bd=12)
             boton_no.pack(pady=10)
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
 
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el Número de factura a eliminar: ",
@@ -370,7 +370,7 @@ def update_new_customer():
                                                 font=("times new roman", 12))
             etiqueta_aceptacion.pack()
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, ID y celular de su núevo cliente: ",
                               font=("times new roman", 14))
@@ -448,7 +448,7 @@ def delete_customer():
                                       height=2, bd=12)
             boton_no.pack(pady=10)
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del cliente a eliminar: ",
                               font=("times new roman", 14))
@@ -566,7 +566,7 @@ def edit_customer():
                                       height=2, bd=12)
             boton_no.pack(pady=10)
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el NIT del cliente a editar: ",
                               font=("times new roman", 14))
@@ -617,7 +617,7 @@ def update_new_user():
                                                 font=("times new roman", 12))
             etiqueta_aceptacion.pack()
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, contraseña e ID de su núevo usuario: ",
                               font=("times new roman", 14))
@@ -695,7 +695,7 @@ def delete_user():
                                       height=2, bd=12)
             boton_no.pack(pady=10)
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del usuario a eliminar: ",
                               font=("times new roman", 14))
@@ -719,7 +719,7 @@ def delete_user():
 
 
 def mostrar_usuarios():
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Estos son los usuarios actuales:",
                               font=("times new roman", 14))
@@ -759,6 +759,20 @@ def edit_user():
         nuevo_telefono = str(nuevo_telefono)
         nuevo_nit = int(nuevo_nit)
 
+        if not nuevo_nombre:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+            return
+
+        if not nuevo_telefono:
+            messagebox.showerror("Error", "Por favor, ingresa un número de teléfono válido.")
+            return
+
+        try:
+            nuevo_nit = int(nuevo_nit)
+        except ValueError:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            return
+
         if usuarios.search_by_ID_usuario(identificador) is None:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         elif usuarios.search_by_ID_usuario(nuevo_nit) is not None:
@@ -775,15 +789,24 @@ def edit_user():
             limpiar_datos_actualizados()
 
     def obtener_datos():
-        identificador = cuadro_ID.get()
-        identificador = int(identificador)
+        identificador = cuadro_ID.get().strip()
 
-        if usuarios.search_by_ID_usuario(identificador) is None:
+        if not identificador:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+            return
+
+        try:
+            identificador1 = int(identificador)
+        except ValueError:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
+            return
+
+        if usuarios.search_by_ID_usuario(identificador1) is None:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
-                                                                   f"{usuarios.search_by_ID_usuario(identificador).data}\n"
+                                                                   f"{usuarios.search_by_ID_usuario(identificador1).data}\n"
                                                                    f"Desea editar al usuario ? Si / No")
             etiqueta_de_eliminacion.pack()
 
@@ -815,7 +838,7 @@ def edit_user():
                 boton_aceptar.pack(pady=10)
 
             def boton_no():
-                if usuarios.search_by_ID_usuario(identificador) is None:
+                if usuarios.search_by_ID_usuario(identificador1) is None:
                     messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no editado",
@@ -830,7 +853,7 @@ def edit_user():
                                       height=2, bd=12)
             boton_no.pack(pady=10)
 
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del usuario a editar: ",
                               font=("times new roman", 14))
@@ -855,7 +878,7 @@ def edit_user():
 
 
 def mostrar_facturas():
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Estos son las facturas actuales:",
                               font=("times new roman", 14))
@@ -874,7 +897,7 @@ def mostrar_facturas():
 
 
 def mostrar_clientes():
-    ventana3 = tkinter.Tk()
+    ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
     etiqueta3 = tkinter.Label(ventana3, text="Estos son los clientes actuales:",
                               font=("times new roman", 14))
@@ -893,7 +916,7 @@ def mostrar_clientes():
 
 
 def menu_de_usuarios():
-    ventana4 = tkinter.Tk()
+    ventana4 = tkinter.Toplevel()
     ventana4.geometry("700x700")
     etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
     etiqueta2.pack(pady=20)
@@ -921,7 +944,7 @@ def menu_de_usuarios():
 
 
 def menu_de_clientes():
-    ventana4 = tkinter.Tk()
+    ventana4 = tkinter.Toplevel()
     ventana4.geometry("700x700")
     etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
     etiqueta2.pack(pady=20)
@@ -948,7 +971,7 @@ def menu_de_clientes():
 
 
 def menu_de_facturas():
-    ventana4 = tkinter.Tk()
+    ventana4 = tkinter.Toplevel()
     ventana4.geometry("700x700")
     etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
     etiqueta2.pack(pady=20)
@@ -972,7 +995,7 @@ def menu_de_facturas():
 
 
 def compra():
-    ventana4 = tkinter.Tk()
+    ventana4 = tkinter.Toplevel()
     ventana4.geometry("700x700")
     etiqueta_compra = tkinter.Label(ventana4, text="Que desea comprar?",
                                     font=("times new roman", 14))
@@ -980,7 +1003,7 @@ def compra():
 
 
 def ver_productos():
-    ventana4 = tkinter.Tk()
+    ventana4 = tkinter.Toplevel()
     ventana4.geometry("700x700")
     etiqueta_productos = tkinter.Label(ventana4, text="Productos actuales:",
                                        font=("times new roman", 14))
@@ -1006,7 +1029,7 @@ def editar_producto():
 
 
 def menu_de_productos():
-    ventana4 = tkinter.Tk()
+    ventana4 = tkinter.Toplevel()
     ventana4.geometry("700x700")
     etiqueta2 = tkinter.Label(ventana4, text="¿Qué desea hacer?", font=("times new roman", 14))
     etiqueta2.pack(pady=20)
@@ -1033,7 +1056,7 @@ def menu_de_productos():
 
 
 def vermenu():
-    ventana2 = tkinter.Tk()
+    ventana2 = tkinter.Toplevel()
     ventana2.geometry("700x700")
     etiqueta2 = tkinter.Label(ventana2, text="¿Qué desea hacer?", font=("times new roman", 14))
     etiqueta2.pack(pady=20)
@@ -1069,18 +1092,23 @@ def salir():
 
 
 def obtener_datos1():
-    ventana2 = tkinter.Tk()
-    ventana2.geometry("900x700")
-    identificador = int(cuadro_login.get())
+    identificador = cuadro_login.get().strip()
     consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
     cursor.execute(consulta, (identificador,))
     registro = cursor.fetchone()
+
+    if cuadro_login is None:
+        messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
 
     def salir():
         ventana2.destroy()
 
     if usuarios.search_by_ID_usuario(identificador) is None:
-        if registro:
+        if registro is None:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+        elif registro:
+            ventana2 = tkinter.Toplevel()
+            ventana2.geometry("900x700")
             etiqueta = tkinter.Label(ventana2, text="BIENVENIDO AL MENÚ",
                                      font=("times new roman", 14))
             etiqueta.pack(pady=20)
