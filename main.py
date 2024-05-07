@@ -112,7 +112,7 @@ def mostrar_tablas():
             etiqueta_cliente = tkinter.Label(ventana_tablas, text=venta_info)
             etiqueta_cliente.pack()
 
-        cursor.execute("SELECT * FROM Producto")
+        cursor.execute("SELECT * FROM Productos")
         productos_info = cursor.fetchall()
 
         etiqueta_prodcuto = tkinter.Label(ventana_tablas, text="Información de Producto:")
@@ -124,6 +124,14 @@ def mostrar_tablas():
 
     except mysql.connector.Error as e:
         print(f"Error al obtener las tablas: {e}")
+    def regresar():
+        ventana_tablas.destroy()
+
+    boton_regresar = tkinter.Button(ventana_tablas, text="Regresar al menú", command=regresar, bg="red", fg="white", width=13,
+                                    height=2, bd=12)
+    boton_regresar.pack(pady=5)
+
+
 
 
 def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura, productos):
@@ -349,9 +357,30 @@ def update_new_customer():
         identificador = cuadro_contrasenia.get()
         celular = cuadro_celular.get()
 
-        nombre1 = str(nombre)
-        identificador1 = int(identificador)
-        celular1 = int(celular)
+
+        if not nombre:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+            return
+        if not identificador:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            return
+        if not celular:
+            messagebox.showerror("Error", "Por favor, ingresa un No. de celular válido (número entero).")
+        try:
+            nombre1 = str(nombre)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+        try:
+            identificador1 = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
+
+        try:
+            celular1 = int(celular)
+
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un No. de celular válido (número entero).")
+            return
 
         if clientes.search_by_ID_cleinte(identificador1) is not None:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
@@ -379,7 +408,7 @@ def update_new_customer():
     etiqueta_nombre.pack()
     cuadro_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_nombre.pack(pady=10)
-    etiqueta_contrasenia = tkinter.Label(ventana3, text="Identificador:", font=("times new roman", 12))
+    etiqueta_contrasenia = tkinter.Label(ventana3, text="NIT:", font=("times new roman", 12))
     etiqueta_contrasenia.pack()
     cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_contrasenia.pack(pady=10)
@@ -410,9 +439,12 @@ def delete_customer():
 
     def obtener_datos():
         identificador = cuadro_ID.get()
-        identificador = int(identificador)
+        try:
+            identificador = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
         if clientes.search_by_ID_cleinte(identificador) is None:
-            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
@@ -422,7 +454,7 @@ def delete_customer():
 
             def boton_si():
                 if clientes.search_by_ID_cleinte(identificador) is None:
-                    messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+                    messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
                 else:
                     cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
                     conn.commit()
@@ -434,7 +466,7 @@ def delete_customer():
 
             def boton_no():
                 if clientes.search_by_ID_cleinte(identificador) is None:
-                    messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+                    messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
                 else:
                     etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no eliminado",
                                                        font=("times new roman", 12))
@@ -450,11 +482,11 @@ def delete_customer():
 
     ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
-    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el ID del cliente a eliminar: ",
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el NIT del cliente a eliminar: ",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
 
-    etiqueta_ID = tkinter.Label(ventana3, text="ID:", font=("times new roman", 12))
+    etiqueta_ID = tkinter.Label(ventana3, text="NIT:", font=("times new roman", 12))
     etiqueta_ID.pack()
     cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_ID.pack(pady=10)
@@ -489,9 +521,28 @@ def edit_customer():
         boton_aceptar.pack_forget()
 
     def actualizar_datos(identificador, nuevo_nombre, nuevo_telefono, nuevo_nit):
-        nuevo_nombre = str(nuevo_nombre)
-        nuevo_telefono = int(nuevo_telefono)
-        nuevo_nit = int(nuevo_nit)
+        if not nuevo_nombre:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+            return
+
+        if not nuevo_telefono:
+            messagebox.showerror("Error", "Por favor, ingresa un número de teléfono válido.")
+            return
+
+        if not nuevo_nit:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
+
+        try:
+            nuevo_telefono = int(nuevo_telefono)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un número de teléfono válido (número entero).")
+            return
+
+        try:
+            nuevo_nit = int(nuevo_nit)
+        except ValueError:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            return
 
         if clientes.search_by_ID_cleinte(identificador) is None:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
@@ -512,7 +563,15 @@ def edit_customer():
 
     def obtener_datos():
         identificador = cuadro_ID.get()
-        identificador = int(identificador)
+
+        if not identificador:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            return
+        try:
+            identificador = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            return
 
         if clientes.search_by_ID_cleinte(identificador) is None:
             messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
@@ -597,10 +656,25 @@ def update_new_user():
         nombre = cuadro_nombre.get()
         contrasenia = cuadro_contrasenia.get()
         identificador = cuadro_ID.get()
-        nombre = str(nombre)
-        identificador = int(identificador)
-        if usuarios.search_by_ID_usuario(identificador) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe",
+        if not nombre:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+            return
+        if not contrasenia:
+            messagebox.showerror("Error", "Por favor, ingresa un contraseña válido.")
+            return
+        if not identificador:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+        try:
+            nombre = str(nombre)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+        try:
+            identificador = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+
+        if usuarios.search_by_ID_usuario(identificador) is not None or None:
+            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe o no se encuentra en la base de datos",
                                               font=("times new roman", 12))
             etiqueta_error_id.pack()
         else:
@@ -610,6 +684,7 @@ def update_new_user():
             cursor = conn.cursor()
             cursor.execute("INSERT INTO Usuarios (nombre, contrasenia, identificador) VALUES (%s, %s, %s)",
                            (nombre, contrasenia, identificador))
+
             conn.commit()
 
             print(new_user)
@@ -657,7 +732,10 @@ def delete_user():
 
     def obtener_datos():
         identificador = cuadro_ID.get()
-        identificador = int(identificador)
+        try:
+            identificador = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         if usuarios.search_by_ID_usuario(identificador) is None:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
@@ -717,26 +795,6 @@ def delete_user():
     boton_regresar.pack(pady=5)
     ventana3.mainloop()
 
-
-def mostrar_usuarios():
-    ventana3 = tkinter.Toplevel()
-    ventana3.geometry("700x700")
-    etiqueta3 = tkinter.Label(ventana3, text="Estos son los usuarios actuales:",
-                              font=("times new roman", 14))
-    etiqueta3.pack(pady=20)
-
-    etiqueta4 = tkinter.Label(ventana3, text=f"{usuarios.transversal()}")
-    etiqueta4.pack()
-
-    def regresar1():
-        ventana3.destroy()
-
-    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
-                                    width=15, height=2, bd=12)
-    boton_regresar.pack(pady=5)
-    ventana3.mainloop()
-
-
 def edit_user():
     global conn, cursor
 
@@ -764,13 +822,13 @@ def edit_user():
             return
 
         if not nuevo_telefono:
-            messagebox.showerror("Error", "Por favor, ingresa un número de teléfono válido.")
+            messagebox.showerror("Error", "Por favor, ingresa una contraseña válido.")
             return
 
         try:
             nuevo_nit = int(nuevo_nit)
         except ValueError:
-            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
             return
 
         if usuarios.search_by_ID_usuario(identificador) is None:
@@ -876,6 +934,23 @@ def edit_user():
 
     ventana3.mainloop()
 
+def mostrar_usuarios():
+    ventana3 = tkinter.Toplevel()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Estos son los usuarios actuales:",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta4 = tkinter.Label(ventana3, text=f"{usuarios.transversal()}")
+    etiqueta4.pack()
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana3.mainloop()
 
 def mostrar_facturas():
     ventana3 = tkinter.Toplevel()
@@ -1079,12 +1154,10 @@ def vermenu():
 
     def regresar():
         ventana2.destroy()
-        ventana.deiconify()
 
     boton_regresar = tkinter.Button(ventana2, text="Regresar al menú", command=regresar, bg="red", fg="white", width=15,
                                     height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana2.mainloop()
 
 
 def salir():
@@ -1093,18 +1166,21 @@ def salir():
 
 def obtener_datos1():
     identificador = cuadro_login.get().strip()
-    consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
-    cursor.execute(consulta, (identificador,))
-    registro = cursor.fetchone()
 
-    if cuadro_login is None:
-        messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+    if not identificador:
+        try:
+            identificador = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
 
     def salir():
         ventana2.destroy()
 
     if usuarios.search_by_ID_usuario(identificador) is None:
-        if registro is None:
+        consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+        if not registro:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         elif registro:
             ventana2 = tkinter.Toplevel()
