@@ -59,7 +59,7 @@ cursor.execute("""
         num_producto INT AUTO_INCREMENT PRIMARY KEY,
         nombre LONGTEXT,
         stock INT,
-        precio INT
+        precio FLOAT
     );
 """)
 conn.commit()
@@ -124,14 +124,14 @@ def mostrar_tablas():
 
     except mysql.connector.Error as e:
         print(f"Error al obtener las tablas: {e}")
+
     def regresar():
         ventana_tablas.destroy()
 
-    boton_regresar = tkinter.Button(ventana_tablas, text="Regresar al menú", command=regresar, bg="red", fg="white", width=13,
+    boton_regresar = tkinter.Button(ventana_tablas, text="Regresar al menú", command=regresar, bg="red", fg="white",
+                                    width=13,
                                     height=2, bd=12)
     boton_regresar.pack(pady=5)
-
-
 
 
 def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura, productos):
@@ -210,9 +210,23 @@ def update_new_facture():
         nombre = cuadro_nombre.get()
         identificador = cuadro_contrasenia.get()
         celular = cuadro_celular.get()
+
+        if not nombre:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+        if not identificador:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+        if not celular:
+            messagebox.showerror("Error", "Por favor, ingresa un número de telefono válido (número entero).")
+
         nombre1 = str(nombre)
-        identificador1 = int(identificador)
-        celular1 = int(celular)
+        try:
+            identificador1 = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+        try:
+            celular1 = int(celular)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un número de telefono válido (número entero).")
         num_de_factura = int(random.randint(0, 999))
         productos = {}
         for x in range(celular1):
@@ -265,7 +279,6 @@ def update_new_facture():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
 
 def delete_facture():
@@ -278,7 +291,13 @@ def delete_facture():
 
     def obtener_datos():
         identificador = cuadro_ID.get()
-        identificador = int(identificador)
+
+        if not identificador:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
+        try:
+            identificador = int(identificador)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
         if ventas.search_by_ID_ventas(identificador) is None:
             etiqueta_error_id = tkinter.Label(ventana3, text="El No. de factura ingresado no existe, vuelva a "
                                                              "intentarlo",
@@ -346,7 +365,6 @@ def delete_facture():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
 
 def update_new_customer():
@@ -356,7 +374,6 @@ def update_new_customer():
         nombre = cuadro_nombre.get()
         identificador = cuadro_contrasenia.get()
         celular = cuadro_celular.get()
-
 
         if not nombre:
             messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
@@ -426,7 +443,6 @@ def update_new_customer():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
 
 def delete_customer():
@@ -500,7 +516,6 @@ def delete_customer():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
 
 def edit_customer():
@@ -646,8 +661,6 @@ def edit_customer():
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
 
-    ventana3.mainloop()
-
 
 def update_new_user():
     global conn, cursor
@@ -719,7 +732,6 @@ def update_new_user():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
 
 def delete_user():
@@ -793,7 +805,7 @@ def delete_user():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
+
 
 def edit_user():
     global conn, cursor
@@ -932,7 +944,6 @@ def edit_user():
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
 
-    ventana3.mainloop()
 
 def mostrar_usuarios():
     ventana3 = tkinter.Toplevel()
@@ -950,7 +961,7 @@ def mostrar_usuarios():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
+
 
 def mostrar_facturas():
     ventana3 = tkinter.Toplevel()
@@ -968,7 +979,6 @@ def mostrar_facturas():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
 
 def mostrar_clientes():
@@ -987,7 +997,6 @@ def mostrar_clientes():
     boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana3.mainloop()
 
 
 def menu_de_usuarios():
@@ -1015,7 +1024,6 @@ def menu_de_usuarios():
     boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana4.mainloop()
 
 
 def menu_de_clientes():
@@ -1042,7 +1050,6 @@ def menu_de_clientes():
     boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana4.mainloop()
 
 
 def menu_de_facturas():
@@ -1066,7 +1073,6 @@ def menu_de_facturas():
     boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana4.mainloop()
 
 
 def compra():
@@ -1092,11 +1098,102 @@ def ver_productos():
     boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana4.mainloop()
 
 
 def agregar_producto():
-    pass
+    global conn, cursor
+
+    def obtener_datos():
+        global conn, cursor
+        num_del_producto = cuadro_nombre.get()
+        nombre = cuadro_contrasenia.get()
+        stock = cuadro_ID.get()
+        precio = cuadro_precio.get()
+
+        if not num_del_producto:
+            messagebox.showerror("Error", "Por favor, ingresa un número válido (número entero).")
+            return
+        if not nombre:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+            return
+        if not stock:
+            messagebox.showerror("Error", "Por favor, ingresa un número de cantidad (stock) válido (número entero).")
+        if not precio:
+            messagebox.showerror("Error", "Por favor, ingresa un número de valor válido.")
+        try:
+            nombre = str(nombre)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+        try:
+            num_del_producto = int(num_del_producto)
+        except:
+            messagebox.showerror("Error", "Por favor, número válido (número entero).")
+        try:
+            stock = int(stock)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un número de cantidad (stock) válido (número entero).")
+        try:
+            precio = int(precio) or float(precio)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un número de valor válido.")
+
+        if productos.search_by_ID_productos(num_del_producto) is not None or None:
+            messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
+        else:
+            consulta = "SELECT * FROM Productos WHERE num_producto = %s"
+            cursor.execute(consulta, (num_del_producto,))
+            registro = cursor.fetchone()
+            if registro:
+                messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
+            elif not registro:
+                new_product = Producto(num_del_producto, nombre, stock, precio)
+                productos.append(new_product)
+
+                cursor = conn.cursor()
+                cursor.execute(" INSERT INTO Productos(num_producto, nombre, stock, precio) VALUES (%s, %s, %s, %s)",
+                               (num_del_producto, nombre, stock, precio))
+
+                conn.commit()
+
+                print(new_product)
+                etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
+                                                    font=("times new roman", 12))
+                etiqueta_aceptacion.pack()
+            else:
+                messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
+
+    ventana3 = tkinter.Toplevel()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el número del producto, nombre, stock, precio de su nuevo "
+                                             "produto: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+    etiqueta_nombre = tkinter.Label(ventana3, text="Número del producto:", font=("times new roman", 12))
+    etiqueta_nombre.pack()
+    cuadro_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_nombre.pack(pady=10)
+    etiqueta_contrasenia = tkinter.Label(ventana3, text="Nombre del producto:", font=("times new roman", 12))
+    etiqueta_contrasenia.pack()
+    cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_contrasenia.pack(pady=10)
+    etiqueta_ID = tkinter.Label(ventana3, text="Stock:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_ID.pack(pady=10)
+    etiqueta_precio = tkinter.Label(ventana3, text="Precio del producto", font=("times new roman", 12))
+    etiqueta_precio.pack(pady=10)
+    cuadro_precio = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_precio.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
 
 
 def editar_producto():
@@ -1127,7 +1224,6 @@ def menu_de_productos():
     boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=regresar2, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
-    ventana4.mainloop()
 
 
 def vermenu():

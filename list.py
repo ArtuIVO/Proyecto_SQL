@@ -2,7 +2,7 @@ from nudo import Node
 from usuario import Usuarios
 from cliente import Cliente
 from venta import Factura
-
+from producto import Producto
 
 class Lista:
     def __init__(self, limit: int | None = None):
@@ -78,6 +78,17 @@ class Lista:
 
         while current is not None:
             if isinstance(current.data, Factura) and current.data.num_factura == data:
+                return current
+            else:
+                current = current.next
+
+        return None
+
+    def search_by_ID_productos(self, data: int):
+        current = self.head
+
+        while current is not None:
+            if isinstance(current.data, Producto) and current.data.num_producto == data:
                 return current
             else:
                 current = current.next
