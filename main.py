@@ -1,6 +1,6 @@
 import random
 import tkinter
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 
 import mysql.connector
 from reportlab.lib import colors
@@ -8,17 +8,10 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
-
-from cliente import Cliente
 from list import Lista
-from producto import Producto
-from usuario import Usuarios
-from venta import Factura
 
-usuarios = Lista()
-clientes = Lista()
-ventas = Lista()
-productos = Lista()
+productos_seleccionados = []
+
 ventana = tkinter.Tk()
 ventana.geometry("900x700")
 
@@ -67,13 +60,12 @@ conn.commit()
 
 def mostrar_tablas():
     global conn, cursor
+    ventana_tablas = tkinter.Toplevel()
+    ventana_tablas.title("Tablas de la base de datos")
     try:
         cursor = conn.cursor()
         cursor.execute("SHOW TABLES")
         tablas = cursor.fetchall()
-
-        ventana_tablas = tkinter.Toplevel()
-        ventana_tablas.title("Tablas de la base de datos")
 
         etiqueta_tablas = tkinter.Label(ventana_tablas, text="Tablas de la base de datos:")
         etiqueta_tablas.pack()
@@ -134,149 +126,149 @@ def mostrar_tablas():
     boton_regresar.pack(pady=5)
 
 
-def generar_factura(nombre_cliente, nit, cantidad_producto, num_factura, productos):
-    # Calcular el total
-    precio_producto = 500  # Precio de producto (ejemplo)
-    total = cantidad_producto * precio_producto
+def generar_factura(nombre_cliente, nit_cliente, productos_seleccionados):
+    try:
+        num_factura = random.randint(0, 100000)
+        doc = SimpleDocTemplate(f"Factura_{num_factura}.pdf", pagesize=letter)
 
-    estilos = getSampleStyleSheet()
-    estilo_titulo = estilos["Heading1"]
-    estilo_encabezado = estilos["Heading2"]
-    estilo_normal = estilos["BodyText"]
-    estilo_firma = ParagraphStyle(name="Firma", parent=estilo_normal, alignment=1)
+        # Crear un StyleSheet
+        styles = getSampleStyleSheet()
 
-    contenido = Lista()
+        elementos = []
 
-    # Crear el lienzo para la factura
-    doc = SimpleDocTemplate(f"Factura_{num_factura}.pdf", pagesize=letter)
-    elementos = []
+        # Agregar el logo al inicio de la factura
+        logo_path = "30-AÑOS-AGREQUIMA.png"  # Ruta de la imagen del logo
+        logo = Image(logo_path, width=200, height=100)  # Ajustar el tamaño de la imagen según sea necesario
+        elementos.append(logo)
 
-    # Logo de la empresa
-    imagen_empresa = Image("30-AÑOS-AGREQUIMA.png", width=150, height=150)
-    imagen_empresa.drawHeight = 1.5 * inch * imagen_empresa.drawHeight / imagen_empresa.drawWidth
-    imagen_empresa.drawWidth = 1.5 * inch
-    elementos.append(imagen_empresa)
+        contenido = [
+            f"Cliente: {nombre_cliente}",
+            f"NIT: {nit_cliente}",
+            f"Número de Factura: {num_factura}"
+        ]
 
-    # Título de la factura
-    elementos.append(Paragraph("FACTURA", estilo_titulo))
+        # Usar el estilo 'Normal' del StyleSheet para los Paragraph
+        elementos.extend([Paragraph(line, styles['Normal']) for line in contenido])
 
-    # Detalles del cliente y factura
-    detalles_cliente = [
-        ["Cliente:", nombre_cliente],
-        ["NIT:", nit],
-        ["Número de Factura:", num_factura],
-    ]
-    tabla_detalles_cliente = Table(detalles_cliente)
-    elementos.append(tabla_detalles_cliente)
+        detalles_productos = [["Producto", "Cantidad", "Precio Unitario", "Subtotal"]]
+        total_factura = 0
 
-    # Detalle del producto
-    detalles_producto = [
-        ["Cantidad:", cantidad_producto],
-        ["Precio Unitario:", f"Q{precio_producto}"],
-        ["Total:", f"Q{total}"],
-    ]
-    tabla_detalles_producto = Table(detalles_producto)
-    elementos.append(tabla_detalles_producto)
+        for num_producto, cantidad in productos_seleccionados:
+            cursor.execute("SELECT nombre, precio FROM Productos WHERE num_producto = %s", (num_producto,))
+            producto = cursor.fetchone()
 
-    # Lista de productos y precios
-    detalles_productos = [["Producto", "Precio"]]
-    for producto, precio in productos.items():
-        detalles_productos.append([producto, f"Q{precio}"])
+            if producto:
+                nombre_producto = producto[0]
+                precio_producto = producto[1]
+                subtotal_producto = cantidad * precio_producto
+                detalles_productos.append(
+                    [nombre_producto, str(cantidad), f"Q{precio_producto:.2f}", f"Q{subtotal_producto:.2f}"])
+                total_factura += subtotal_producto
 
-    tabla_productos = Table(detalles_productos)
-    tabla_productos.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                                         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                                         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                                         ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                                         ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
-    elementos.append(tabla_productos)
+        tabla_productos = Table(detalles_productos)
+        # Definir el estilo de la tabla correctamente
+        estilo_tabla = TableStyle([
+            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),  # Borde interno
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.black)  # Borde externo
+        ])
+        tabla_productos.setStyle(estilo_tabla)
+        elementos.append(tabla_productos)
 
-    # Espacios en blanco
-    elementos.append(Spacer(1, 10))
-    elementos.append(Paragraph(f"<b>Total:</b> Q{total}", estilo_encabezado))
-    elementos.append(Spacer(1, 50))
-    elementos.append(Paragraph("Firma ________________________", estilo_firma))
+        elementos.append(Paragraph(f"Total: Q{total_factura:.2f}", styles['Heading1']))  # Ejemplo de otro estilo
 
-    # Construir el PDF de la factura
-    doc.build(elementos)
+        doc.build(elementos)
+
+        messagebox.showinfo("¡ÉXITO!", f"Factura generada exitosamente: Factura_{num_factura}.pdf")
+
+        # Guardar factura en la base de datos
+        cursor.execute("INSERT INTO Factura (num_factura, nombre, tel, cantidad) VALUES (%s, %s, %s, %s)",
+                       (num_factura, nombre_cliente, nit_cliente, len(productos_seleccionados)))
+        conn.commit()
+
+    except mysql.connector.Error as e:
+        messagebox.showerror("Error", f"Error al generar la factura: {e}")
 
 
 def update_new_facture():
     global conn, cursor
 
     def obtener_datos():
+        global conn, cursor
         nombre = cuadro_nombre.get()
         identificador = cuadro_contrasenia.get()
         celular = cuadro_celular.get()
 
         if not nombre:
             messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+            return
         if not identificador:
             messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            return
         if not celular:
-            messagebox.showerror("Error", "Por favor, ingresa un número de telefono válido (número entero).")
+            messagebox.showerror("Error", "Por favor, ingresa un número de teléfono válido (número entero).")
+            return
 
-        nombre1 = str(nombre)
+        nombre = str(nombre)
         try:
-            identificador1 = int(identificador)
-        except:
+            identificador = int(identificador)
+        except ValueError:
             messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
+            return
+
         try:
-            celular1 = int(celular)
-        except:
-            messagebox.showerror("Error", "Por favor, ingresa un número de telefono válido (número entero).")
-        num_de_factura = int(random.randint(0, 999))
+            celular = int(celular)
+        except ValueError:
+            messagebox.showerror("Error", "Por favor, ingresa un número de teléfono válido (número entero).")
+            return
+
+        num_de_factura = random.randint(0, 999)
         productos = {}
-        for x in range(celular1):
+        for x in range(celular):
             productos[f"Producto{x + 1}"] = 500
 
-        if ventas.search_by_ID_ventas(num_de_factura) is not None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El No. de factura ya existe",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
-        else:
-            generar_factura(nombre1, identificador1, celular1, num_de_factura, productos)
-            new_facture = Factura(nombre1, identificador1, celular1, num_de_factura)
-            ventas.append(new_facture)
+        consulta = "SELECT * FROM Factura WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
 
-            cursor = conn.cursor()
+        if not registro:
+            messagebox.showerror("Error", "Por favor, ingresa un número de factura válido.")
+            return
+        else:
             cursor.execute("INSERT INTO Factura (nombre, tel, cantidad, num_factura) VALUES (%s, %s, %s, %s)",
                            (nombre, identificador, celular, num_de_factura))
             conn.commit()
-
-            print(new_facture)
-            etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
-                                                font=("times new roman", 12))
-            etiqueta_aceptacion.pack()
+            messagebox.showinfo("¡ÉXITO!", "Se creó la factura correctamente.")
 
     ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
-    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre del cliente, número de telefono y cantidad del "
-                                             "producto comprado: ",
+
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre del cliente, NIT y cantidad del producto comprado:",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
+
     etiqueta_nombre = tkinter.Label(ventana3, text="Nombre:", font=("times new roman", 12))
     etiqueta_nombre.pack()
     cuadro_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_nombre.pack(pady=10)
-    etiqueta_contrasenia = tkinter.Label(ventana3, text="No. de nit:", font=("times new roman", 12))
+
+    etiqueta_contrasenia = tkinter.Label(ventana3, text="NIT:", font=("times new roman", 12))
     etiqueta_contrasenia.pack()
     cuadro_contrasenia = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_contrasenia.pack(pady=10)
-    etiqueta_ID = tkinter.Label(ventana3, text="Cantidad del producto:", font=("times new roman", 12))
-    etiqueta_ID.pack()
+
+    etiqueta_celular = tkinter.Label(ventana3, text="Cantidad del producto:", font=("times new roman", 12))
+    etiqueta_celular.pack()
     cuadro_celular = tkinter.Entry(ventana3, font=("times new roman", 12))
     cuadro_celular.pack(pady=10)
-    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=obtener_datos, bg="blue", fg="white",
-                                         width=15, height=2, bd=12)
+
+    boton_obtener_datos = tkinter.Button(ventana3, text="Obtener Datos", command=lambda: obtener_datos(conn, cursor),
+                                         bg="blue", fg="white", width=15, height=2, bd=12)
     boton_obtener_datos.pack(pady=10)
 
     def regresar1():
         ventana3.destroy()
 
-    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al Menú", command=regresar1, bg="red", fg="white",
                                     width=15, height=2, bd=12)
     boton_regresar.pack(pady=5)
 
@@ -298,44 +290,33 @@ def delete_facture():
             identificador = int(identificador)
         except:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
-        if ventas.search_by_ID_ventas(identificador) is None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El No. de factura ingresado no existe, vuelva a "
-                                                             "intentarlo",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
+        consulta = "SELECT * FROM Factura WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+
+        if not registro:
+            messagebox.showerror("Error", "Por favor, ingresa un número de factura válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Factura encontrada:\n"
-                                                                   f"{ventas.search_by_ID_ventas(identificador).data}\n"
-                                                                   f"Desea eliminar al usuario ? Si / No")
+                                                                   f"{registro}\n"
+                                                                   f"Desea eliminar la factura ? Si / No")
             etiqueta_de_eliminacion.pack()
 
             def boton_si():
-                if ventas.search_by_ID_ventas(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El No. de factura ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                if not registro:
+                    messagebox.showerror("Error", "Por favor, ingrese un número de factura válido")
                 else:
                     cursor.execute("DELETE FROM Factura WHERE num_factura = %s", (identificador,))
                     conn.commit()
-                    ventas.deleate_by_ID_ventas(identificador)
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Factura eliminada",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    messagebox.showinfo("¡EXITO!", "Factura eliminado correctamente")
                     limpiar_datos()
 
             def boton_no():
-                if ventas.search_by_ID_ventas(identificador) is None:
-                    etiqueta_error_id = tkinter.Label(ventana3,
-                                                      text="El No. de factura ingresado no existe, vuelva a intentarlo",
-                                                      font=("times new roman", 12))
-                    etiqueta_error_id.pack()
+                if not registro:
+                    messagebox.showerror("Error", "Por favor, ingresa un número de factura válido.")
                 else:
-                    etiqueta_no_eliminado = tkinter.Label(ventana3, text="Factura no eliminada",
-                                                          font=("times new roman", 12))
-                    etiqueta_no_eliminado.pack()
-                    limpiar_datos()
+                    messagebox.showinfo("¡EXITO!", "Su factura no fue eliminada")
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
                                       height=2, bd=12)
@@ -371,6 +352,7 @@ def update_new_customer():
     global conn, cursor
 
     def obtener_datos():
+        global conn, cursor
         nombre = cuadro_nombre.get()
         identificador = cuadro_contrasenia.get()
         celular = cuadro_celular.get()
@@ -399,26 +381,22 @@ def update_new_customer():
             messagebox.showerror("Error", "Por favor, ingresa un No. de celular válido (número entero).")
             return
 
-        if clientes.search_by_ID_cleinte(identificador1) is not None:
+        consulta = "SELECT * FROM Clientes WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+
+        if not registro:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
-        elif clientes.search_by_cel(celular1) is not None:
-            messagebox.showerror("Error", "Por favor, ingresa un número de celular válido.")
         else:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO Clientes (nombre, identificador, celular) VALUES (%s, %s, %s)",
                            (nombre1, identificador1, celular1))
             conn.commit()
-            new_customer = Cliente(nombre1, identificador1, celular1)
-            clientes.append(new_customer)
-
-            print(new_customer)
-            etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
-                                                font=("times new roman", 12))
-            etiqueta_aceptacion.pack()
+            messagebox.showinfo("¡EXITO!", "Se agrego su cliente correctamente")
 
     ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
-    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, ID y celular de su núevo cliente: ",
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el nombre, NIT y celular de su núevo cliente: ",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
     etiqueta_nombre = tkinter.Label(ventana3, text="Nombre:", font=("times new roman", 12))
@@ -459,34 +437,33 @@ def delete_customer():
             identificador = int(identificador)
         except:
             messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
-        if clientes.search_by_ID_cleinte(identificador) is None:
-            messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
+        consulta = "SELECT * FROM Clientes WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+
+        if not registro:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
-                                                                   f"{clientes.search_by_ID_cleinte(identificador).data}\n"
+                                                                   f"{registro}\n"
                                                                    f"Desea eliminar al usuario ? Si / No")
             etiqueta_de_eliminacion.pack()
 
             def boton_si():
-                if clientes.search_by_ID_cleinte(identificador) is None:
+                if not registro:
                     messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
                 else:
                     cursor.execute("DELETE FROM Clientes WHERE identificador = %s", (identificador,))
                     conn.commit()
-                    clientes.delete_by_ID(identificador)
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente eliminado",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    messagebox.showinfo("¡EXITO!", "Su cliente fue eliminado correctamente")
                     limpiar_datos()
 
             def boton_no():
-                if clientes.search_by_ID_cleinte(identificador) is None:
+                if not registro:
                     messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
                 else:
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no eliminado",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    messagebox.showinfo("¡EXITO!", "Su cliente no fue eliminado")
                     limpiar_datos()
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
@@ -559,21 +536,17 @@ def edit_customer():
             messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
             return
 
-        if clientes.search_by_ID_cleinte(identificador) is None:
-            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
-        elif clientes.search_by_ID_cleinte(nuevo_nit) is not None:
+        consulta = "SELECT * FROM Clientes WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+
+        if not registro:
             messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
-        elif clientes.search_by_cel(nuevo_telefono) is not None:
-            messagebox.showerror("Error", "Por favor, ingresa un número de celular válido.")
         else:
             cursor.execute("UPDATE Clientes SET nombre = %s, celular = %s, identificador = %s",
                            (nuevo_nombre, nuevo_telefono, nuevo_nit))
             conn.commit()
-            clientes.search_by_ID_cleinte(identificador).data.nombre = nuevo_nombre
-            clientes.search_by_ID_cleinte(identificador).data.celular = nuevo_telefono
-            clientes.search_by_ID_cleinte(identificador).data.identificador = nuevo_nit
-            etiqueta_editado = tkinter.Label(ventana3, text="Cliente editado", font=("times new roman", 12))
-            etiqueta_editado.pack()
+            messagebox.showinfo("¡EXITO!", "Se agrego a su cliente correctamente")
             limpiar_datos_actualizados()
 
     def obtener_datos():
@@ -588,12 +561,16 @@ def edit_customer():
             messagebox.showerror("Error", "Por favor, ingresa un NIT válido (número entero).")
             return
 
-        if clientes.search_by_ID_cleinte(identificador) is None:
-            messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
+        consulta = "SELECT * FROM Clientes WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+
+        if not registro:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Cliente encontrado:\n"
-                                                                   f"{clientes.search_by_ID_cleinte(identificador).data}\n"
+                                                                   f"{registro}\n"
                                                                    f"Desea editar al cliente ? Si / No")
             etiqueta_de_eliminacion.pack()
 
@@ -625,12 +602,10 @@ def edit_customer():
                 boton_aceptar.pack(pady=10)
 
             def boton_no():
-                if clientes.search_by_ID_cleinte(identificador) is None:
+                if not registro:
                     messagebox.showerror("Error", "Por favor, ingresa un NIT válido.")
                 else:
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Cliente no editado",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    messagebox.showinfo("¡EXITO!", "Su cliente no fue editado")
                     limpiar_datos()
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
@@ -666,6 +641,7 @@ def update_new_user():
     global conn, cursor
 
     def obtener_datos():
+        global conn, cursor
         nombre = cuadro_nombre.get()
         contrasenia = cuadro_contrasenia.get()
         identificador = cuadro_ID.get()
@@ -686,24 +662,19 @@ def update_new_user():
         except:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
 
-        if usuarios.search_by_ID_usuario(identificador) is not None or None:
-            etiqueta_error_id = tkinter.Label(ventana3, text="El ID ya existe o no se encuentra en la base de datos",
-                                              font=("times new roman", 12))
-            etiqueta_error_id.pack()
-        else:
-            new_user = Usuarios(nombre, contrasenia, identificador)
-            usuarios.append(new_user)
+        consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
 
+        if not registro:
+            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+        else:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO Usuarios (nombre, contrasenia, identificador) VALUES (%s, %s, %s)",
                            (nombre, contrasenia, identificador))
 
             conn.commit()
-
-            print(new_user)
-            etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
-                                                font=("times new roman", 12))
-            etiqueta_aceptacion.pack()
+            messagebox.showinfo("¡EXITO!", "Se agrego a su usuarios correctamente")
 
     ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
@@ -748,34 +719,33 @@ def delete_user():
             identificador = int(identificador)
         except:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
-        if usuarios.search_by_ID_usuario(identificador) is None:
+        consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+
+        if not registro:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
-                                                                   f"{usuarios.search_by_ID_usuario(identificador).data}\n"
+                                                                   f"{registro}\n"
                                                                    f"Desea eliminar al usuario ? Si / No")
             etiqueta_de_eliminacion.pack()
 
             def boton_si():
-                if usuarios.search_by_ID_usuario(identificador) is None:
+                if not registro:
                     messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
                     cursor.execute("DELETE FROM Usuarios WHERE identificador = %s", (identificador,))
                     conn.commit()
-                    usuarios.delete_by_ID(identificador)
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario eliminado",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    messagebox.showinfo("¡EXITO!", "Su usuarios a sido eliminado correctamete")
                     limpiar_datos()
 
             def boton_no():
-                if usuarios.search_by_ID_usuario(identificador) is None:
+                if not registro:
                     messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no eliminado",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    messagebox.showinfo("¡EXITO!", "Su usuarios no fue eliminado")
                     limpiar_datos()
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
@@ -843,19 +813,17 @@ def edit_user():
             messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
             return
 
-        if usuarios.search_by_ID_usuario(identificador) is None:
-            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
-        elif usuarios.search_by_ID_usuario(nuevo_nit) is not None:
+        consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
+
+        if not registro:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             cursor.execute("UPDATE Usuarios SET nombre = %s, contrasenia = %s, identificador = %s",
                            (nuevo_nombre, nuevo_telefono, nuevo_nit))
             conn.commit()
-            usuarios.search_by_ID_usuario(identificador).data.nombre = nuevo_nombre
-            usuarios.search_by_ID_usuario(identificador).data.contrasenia = nuevo_telefono
-            usuarios.search_by_ID_usuario(identificador).data.identificador = nuevo_nit
-            etiqueta_editado = tkinter.Label(ventana3, text="Usuario editado", font=("times new roman", 12))
-            etiqueta_editado.pack()
+            messagebox.showinfo("¡EXITO!", "Su usuario fue editado correctamente")
             limpiar_datos_actualizados()
 
     def obtener_datos():
@@ -866,17 +834,20 @@ def edit_user():
             return
 
         try:
-            identificador1 = int(identificador)
+            identificador = int(identificador)
         except ValueError:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido (número entero).")
             return
+        consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
+        cursor.execute(consulta, (identificador,))
+        registro = cursor.fetchone()
 
-        if usuarios.search_by_ID_usuario(identificador1) is None:
+        if not registro:
             messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
         else:
             global etiqueta_de_eliminacion, boton_si, boton_no
             etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
-                                                                   f"{usuarios.search_by_ID_usuario(identificador1).data}\n"
+                                                                   f"{registro}\n"
                                                                    f"Desea editar al usuario ? Si / No")
             etiqueta_de_eliminacion.pack()
 
@@ -908,12 +879,10 @@ def edit_user():
                 boton_aceptar.pack(pady=10)
 
             def boton_no():
-                if usuarios.search_by_ID_usuario(identificador1) is None:
+                if not registro:
                     messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
                 else:
-                    etiqueta_eliminado = tkinter.Label(ventana3, text="Usuario no editado",
-                                                       font=("times new roman", 12))
-                    etiqueta_eliminado.pack()
+                    messagebox.showinfo("¡EXITO!", "Su usuarios no fue editado")
                     limpiar_datos()
 
             boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
@@ -951,9 +920,15 @@ def mostrar_usuarios():
     etiqueta3 = tkinter.Label(ventana3, text="Estos son los usuarios actuales:",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
+    cursor.execute("SELECT * FROM Usuarios")
+    usuarios_info = cursor.fetchall()
 
-    etiqueta4 = tkinter.Label(ventana3, text=f"{usuarios.transversal()}")
-    etiqueta4.pack()
+    etiqueta_usuarios = tkinter.Label(ventana3, text="Información de Usuarios:")
+    etiqueta_usuarios.pack()
+
+    for usuario_info in usuarios_info:
+        etiqueta_usuario = tkinter.Label(ventana3, text=usuario_info)
+        etiqueta_usuario.pack()
 
     def regresar1():
         ventana3.destroy()
@@ -969,9 +944,15 @@ def mostrar_facturas():
     etiqueta3 = tkinter.Label(ventana3, text="Estos son las facturas actuales:",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
+    cursor.execute("SELECT * FROM Factura")
+    ventas_info = cursor.fetchall()
 
-    etiqueta4 = tkinter.Label(ventana3, text=f"{ventas.transversal()}")
-    etiqueta4.pack()
+    etiqueta_clientes = tkinter.Label(ventana3, text="Información de Facturas:")
+    etiqueta_clientes.pack()
+
+    for venta_info in ventas_info:
+        etiqueta_cliente = tkinter.Label(ventana3, text=venta_info)
+        etiqueta_cliente.pack()
 
     def regresar1():
         ventana3.destroy()
@@ -987,9 +968,15 @@ def mostrar_clientes():
     etiqueta3 = tkinter.Label(ventana3, text="Estos son los clientes actuales:",
                               font=("times new roman", 14))
     etiqueta3.pack(pady=20)
+    cursor.execute("SELECT * FROM Clientes")
+    clientes_info = cursor.fetchall()
 
-    etiqueta4 = tkinter.Label(ventana3, text=f"{clientes.transversal()}")
-    etiqueta4.pack()
+    etiqueta_clientes = tkinter.Label(ventana3, text="Información de Clientes:")
+    etiqueta_clientes.pack()
+
+    for cliente_info in clientes_info:
+        etiqueta_cliente = tkinter.Label(ventana3, text=cliente_info)
+        etiqueta_cliente.pack()
 
     def regresar1():
         ventana3.destroy()
@@ -1076,11 +1063,184 @@ def menu_de_facturas():
 
 
 def compra():
-    ventana4 = tkinter.Toplevel()
+    global conn, cursor
+
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
+    def limpiar_datos_actualizados():
+        etiqueta_nuevo_nombre.pack_forget()
+        cuadro_nuevo_nombre.pack_forget()
+
+    def verificar_cliente(nombre_cliente, nit_cliente, producto_seleccionados):
+        try:
+            cursor.execute("SELECT * FROM Clientes WHERE nombre = %s AND identificador = %s",
+                           (nombre_cliente, nit_cliente))
+            cliente_existente = cursor.fetchone()
+
+            if not cliente_existente:
+                respuesta = messagebox.askyesno("Cliente no encontrado",
+                                                "El cliente no existe en la base de datos. ¿Desea agregarlo?")
+                if respuesta:
+                    cursor.execute("INSERT INTO Clientes (nombre, identificador) VALUES (%s, %s)",
+                                   (nombre_cliente, nit_cliente))
+                    conn.commit()
+
+            generar_factura(nombre_cliente, nit_cliente, productos_seleccionados)
+
+        except mysql.connector.Error as e:
+            messagebox.showerror("Error", f"Error al verificar cliente y generar factura: {e}")
+
+    def generar_factura(nombre_cliente, nit_cliente, productos_seleccionados):
+        try:
+            num_factura = random.randint(0, 100000)
+            doc = SimpleDocTemplate(f"Factura_{num_factura}.pdf", pagesize=letter)
+
+            # Crear un StyleSheet
+            styles = getSampleStyleSheet()
+
+            elementos = []
+
+            # Agregar el logo al inicio de la factura
+            logo_path = "30-AÑOS-AGREQUIMA.png"  # Ruta de la imagen del logo
+            logo = Image(logo_path, width=200, height=100)  # Ajustar el tamaño de la imagen según sea necesario
+            elementos.append(logo)
+
+            contenido = [
+                f"Cliente: {nombre_cliente}",
+                f"NIT: {nit_cliente}",
+                f"Número de Factura: {num_factura}"
+            ]
+
+            # Usar el estilo 'Normal' del StyleSheet para los Paragraph
+            elementos.extend([Paragraph(line, styles['Normal']) for line in contenido])
+
+            detalles_productos = [["Producto", "Cantidad", "Precio Unitario", "Subtotal"]]
+            total_factura = 0
+
+            for num_producto, cantidad in productos_seleccionados:
+                cursor.execute("SELECT nombre, precio FROM Productos WHERE num_producto = %s", (num_producto,))
+                producto = cursor.fetchone()
+
+                if producto:
+                    nombre_producto = producto[0]
+                    precio_producto = producto[1]
+                    subtotal_producto = cantidad * precio_producto
+                    detalles_productos.append(
+                        [nombre_producto, str(cantidad), f"Q{precio_producto:.2f}", f"Q{subtotal_producto:.2f}"])
+                    total_factura += subtotal_producto
+
+            tabla_productos = Table(detalles_productos)
+            # Definir el estilo de la tabla correctamente
+            estilo_tabla = TableStyle([
+                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),  # Borde interno
+                ('BOX', (0, 0), (-1, -1), 0.25, colors.black)  # Borde externo
+            ])
+            tabla_productos.setStyle(estilo_tabla)
+            elementos.append(tabla_productos)
+
+            elementos.append(Paragraph(f"Total: Q{total_factura:.2f}", styles['Heading1']))  # Ejemplo de otro estilo
+
+            doc.build(elementos)
+
+            messagebox.showinfo("¡ÉXITO!", f"Factura generada exitosamente: Factura_{num_factura}.pdf")
+
+            # Guardar factura en la base de datos
+            cursor.execute("INSERT INTO Factura (num_factura, nombre, tel, cantidad) VALUES (%s, %s, %s, %s)",
+                           (num_factura, nombre_cliente, nit_cliente, len(productos_seleccionados)))
+            conn.commit()
+
+        except mysql.connector.Error as e:
+            messagebox.showerror("Error", f"Error al generar la factura: {e}")
+
+    def obtener_datos():
+        num_producto = cuadro_de_compra.get().strip()
+
+        try:
+            num_producto = int(num_producto)
+        except ValueError:
+            messagebox.showerror("Error", "Por favor, ingrese un número de producto válido.")
+            return
+
+        consulta = "SELECT * FROM Productos WHERE num_producto = %s"
+        cursor.execute(consulta, (num_producto,))
+        registro = cursor.fetchone()
+
+        if not registro:
+            messagebox.showerror("Error", "Producto no encontrado.")
+        else:
+            global boton_si, boton_no, etiqueta_de_eliminacion
+            etiqueta_de_eliminacion = tkinter.Label(ventana4,
+                                                    text=f"Producto encontrado:\n{registro[1]} - Stock: {registro[2]}\nDesea comprar este producto? Si / No")
+            etiqueta_de_eliminacion.pack(pady=10)
+
+            def boton_si():
+                limpiar_datos()
+                cantidad = simpledialog.askinteger("Cantidad", "Ingrese la cantidad a comprar", initialvalue=1)
+
+                try:
+                    if cantidad and cantidad > 0:
+                        cursor.execute("SELECT * FROM Productos WHERE num_producto = %s", (num_producto,))
+                        producto = cursor.fetchone()
+
+                        if not producto:
+                            messagebox.showerror("Error", "Producto no encontrado.")
+                        else:
+                            if cantidad <= producto[2]:
+                                productos_seleccionados.append((num_producto, cantidad))
+                                messagebox.showinfo("Éxito", "Producto agregado al carrito.")
+                                nueva_cantidad = producto[2] - cantidad
+                                cursor.execute("UPDATE Productos SET stock = %s WHERE num_producto = %s",
+                                               (nueva_cantidad, num_producto))
+                                conn.commit()
+                            else:
+                                messagebox.showerror("Error", "No hay suficiente stock para esta compra.")
+                except mysql.connector.Error as e:
+                    messagebox.showerror("Error", f"Error al buscar o actualizar producto: {e}")
+
+            def boton_no():
+                limpiar_datos()
+
+            boton_si = tkinter.Button(ventana4, text="Si", command=boton_si, bg="blue", fg="white", width=15, height=2,
+                                      bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana4, text="No", command=boton_no, bg="blue", fg="white", width=15, height=2,
+                                      bd=12)
+            boton_no.pack(pady=10)
+
+    def finalizar_compra():
+        if not productos_seleccionados:
+            messagebox.showwarning("Advertencia", "No ha seleccionado ningún producto.")
+        else:
+            nombre_cliente = simpledialog.askstring("Cliente", "Ingrese su nombre:")
+            nit_cliente = simpledialog.askinteger("Cliente", "Ingrese su NIT:")
+            if nombre_cliente and nit_cliente:
+                verificar_cliente(nombre_cliente, nit_cliente, productos_seleccionados)
+
+    ventana4 = tkinter.Tk()
     ventana4.geometry("700x700")
-    etiqueta_compra = tkinter.Label(ventana4, text="Que desea comprar?",
+
+    etiqueta_compra = tkinter.Label(ventana4, text="Por favor ingrese el número de su producto a comprar",
                                     font=("times new roman", 14))
     etiqueta_compra.pack(pady=20)
+
+    cuadro_de_compra = tkinter.Entry(ventana4, font=("times new roman", 12))
+    cuadro_de_compra.pack(pady=10)
+
+    boton_obtener_datos = tkinter.Button(ventana4, text="Obtener Datos", command=obtener_datos,
+                                         bg="blue", fg="white", width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    boton_finalizar_compra = tkinter.Button(ventana4, text="Finalizar Compra", command=finalizar_compra,
+                                            bg="green", fg="white", width=15, height=2, bd=12)
+    boton_finalizar_compra.pack(pady=10)
+
+    boton_regresar = tkinter.Button(ventana4, text="Regresar al menú", command=ventana4.destroy,
+                                    bg="red", fg="white", width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+    ventana4.mainloop()
 
 
 def ver_productos():
@@ -1089,8 +1249,15 @@ def ver_productos():
     etiqueta_productos = tkinter.Label(ventana4, text="Productos actuales:",
                                        font=("times new roman", 14))
     etiqueta_productos.pack(pady=20)
-    etiqueta4 = tkinter.Label(ventana4, text=f"{productos.transversal()}")
-    etiqueta4.pack()
+    cursor = conn.cursor()
+    cursor.execute("SHOW TABLES")
+    tablas = cursor.fetchall()
+    cursor.execute("SELECT * FROM Productos")
+    productos_info = cursor.fetchall()
+
+    for productos_info in productos_info:
+        etiqueta_prodcuto = tkinter.Label(ventana4, text=productos_info)
+        etiqueta_prodcuto.pack()
 
     def regresar1():
         ventana4.destroy()
@@ -1137,30 +1304,20 @@ def agregar_producto():
         except:
             messagebox.showerror("Error", "Por favor, ingresa un número de valor válido.")
 
-        if productos.search_by_ID_productos(num_del_producto) is not None or None:
+        consulta = "SELECT * FROM Productos WHERE num_producto = %s"
+        cursor.execute(consulta, (num_del_producto,))
+        registro = cursor.fetchone()
+        if registro:
             messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
+        elif not registro:
+            cursor = conn.cursor()
+            cursor.execute(" INSERT INTO Productos(num_producto, nombre, stock, precio) VALUES (%s, %s, %s, %s)",
+                           (num_del_producto, nombre, stock, precio))
+
+            conn.commit()
+            messagebox.showinfo("¡EXITO!", "Su producto fue agregado correctamente")
         else:
-            consulta = "SELECT * FROM Productos WHERE num_producto = %s"
-            cursor.execute(consulta, (num_del_producto,))
-            registro = cursor.fetchone()
-            if registro:
-                messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
-            elif not registro:
-                new_product = Producto(num_del_producto, nombre, stock, precio)
-                productos.append(new_product)
-
-                cursor = conn.cursor()
-                cursor.execute(" INSERT INTO Productos(num_producto, nombre, stock, precio) VALUES (%s, %s, %s, %s)",
-                               (num_del_producto, nombre, stock, precio))
-
-                conn.commit()
-
-                print(new_product)
-                etiqueta_aceptacion = tkinter.Label(ventana3, text="Datos aceptados correctamente",
-                                                    font=("times new roman", 12))
-                etiqueta_aceptacion.pack()
-            else:
-                messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
+            messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
 
     ventana3 = tkinter.Toplevel()
     ventana3.geometry("700x700")
@@ -1197,7 +1354,203 @@ def agregar_producto():
 
 
 def editar_producto():
-    pass
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
+    def limpiar_datos_actualizados():
+        etiqueta_nuevo_nombre.pack_forget()
+        cuadro_nuevo_nombre.pack_forget()
+        etiqueta_nuevo_cel.pack_forget()
+        cuadro_nuevo_cel.pack_forget()
+        etiqueta_nuevo_nit.pack_forget()
+        cuadro_nuevo_nit.pack_forget()
+        boton_aceptar.pack_forget()
+
+    def actualizar_datos(num_producto, nuevo_nombre, nuevo_telefono, nuevo_nit):
+        if not nuevo_nombre:
+            messagebox.showerror("Error", "Por favor, ingresa un nombre válido.")
+            return
+
+        try:
+            nuevo_telefono = int(nuevo_telefono)
+            if nuevo_telefono < 0:
+                raise ValueError("Stock debe ser un número positivo.")
+        except ValueError:
+            messagebox.showerror("Error", "Por favor, ingresa un número de stock válido (número entero positivo).")
+            return
+
+        try:
+            nuevo_nit = float(nuevo_nit)
+            if nuevo_nit < 0:
+                raise ValueError("Precio debe ser un número positivo.")
+        except ValueError:
+            messagebox.showerror("Error", "Por favor, ingresa un precio válido (número positivo).")
+            return
+
+        cursor.execute("UPDATE Productos SET nombre = %s, stock = %s, precio = %s WHERE num_producto = %s",
+                       (nuevo_nombre, nuevo_telefono, nuevo_nit, num_producto))
+
+        conn.commit()
+        messagebox.showinfo("¡ÉXITO!", "¡Producto actualizado correctamente!")
+        limpiar_datos_actualizados()
+
+    def obtener_datos():
+        num_producto = cuadro_num_producto.get()
+
+        if not num_producto:
+            messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
+            return
+        try:
+            num_producto = int(num_producto)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un número de producto válido (número entero).")
+            return
+
+        consulta = "SELECT * FROM Productos WHERE num_producto = %s"
+        cursor.execute(consulta, (num_producto,))
+        registro = cursor.fetchone()
+
+        if not registro:
+            messagebox.showerror("Error", "Por favor, ingresa un número de producto válido.")
+        else:
+            global etiqueta_de_eliminacion, boton_si, boton_no
+            etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Producto encontrado:\n"
+                                                                   f"{registro}\n"
+                                                                   f"Desea editar este producto ? Si / No")
+            etiqueta_de_eliminacion.pack()
+
+            def boton_si():
+                limpiar_datos()
+                global etiqueta_nuevo_nombre, cuadro_nuevo_nombre, etiqueta_nuevo_cel, cuadro_nuevo_cel, etiqueta_nuevo_nit, cuadro_nuevo_nit, boton_aceptar
+                etiqueta_nuevo_nombre = tkinter.Label(ventana3, text="Ingrese el nuevo nombre: ",
+                                                      font=("times new roman", 12))
+                etiqueta_nuevo_nombre.pack()
+                cuadro_nuevo_nombre = tkinter.Entry(ventana3, font=("times new roman", 12))
+                cuadro_nuevo_nombre.pack(pady=10)
+                etiqueta_nuevo_cel = tkinter.Label(ventana3, text="Ingrese el nuevo número de stock de su producto: ",
+                                                   font=("times new roman", 12))
+                etiqueta_nuevo_cel.pack()
+                cuadro_nuevo_cel = tkinter.Entry(ventana3, font=("times new roman", 12))
+                cuadro_nuevo_cel.pack(pady=10)
+                etiqueta_nuevo_nit = tkinter.Label(ventana3, text="Ingrese el nuevo precio de su producto: ",
+                                                   font=("times new roman", 12))
+                etiqueta_nuevo_nit.pack()
+                cuadro_nuevo_nit = tkinter.Entry(ventana3, font=("times new roman", 12))
+                cuadro_nuevo_nit.pack(pady=10)
+
+                boton_aceptar = tkinter.Button(ventana3, text="Aceptar",
+                                               command=lambda: actualizar_datos(num_producto,
+                                                                                cuadro_nuevo_nombre.get(),
+                                                                                cuadro_nuevo_cel.get(),
+                                                                                cuadro_nuevo_nit.get()),
+                                               bg="blue", fg="white", width=15, height=2, bd=12)
+                boton_aceptar.pack(pady=10)
+
+            def boton_no():
+                if not registro:
+                    messagebox.showerror("Error", "Por favor, ingresa un número de producto válido.")
+                else:
+                    messagebox.showinfo("¡EXITO!", "Su producto no fue editado")
+                    limpiar_datos()
+
+            boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_no.pack(pady=10)
+
+    ventana3 = tkinter.Toplevel()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el Número del producto que desea editar: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta_ID = tkinter.Label(ventana3, text="No. del producto:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_num_producto = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_num_producto.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Aceptar", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
+
+
+def eliminar_producto():
+    global conn, cursor
+
+    def limpiar_datos():
+        etiqueta_de_eliminacion.pack_forget()
+        boton_si.pack_forget()
+        boton_no.pack_forget()
+
+    def obtener_datos():
+        num_producto = cuadro_ID.get()
+        try:
+            num_producto = int(num_producto)
+        except:
+            messagebox.showerror("Error", "Por favor, ingresa un número de producto  válido.")
+
+        consulta = "SELECT * FROM Productos WHERE num_producto = %s"
+        cursor.execute(consulta, (num_producto,))
+        registro = cursor.fetchone()
+        if not registro:
+            messagebox.showerror("Error", "Por favor, ingresa un número de producto válido.")
+        else:
+            global etiqueta_de_eliminacion, boton_si, boton_no
+            etiqueta_de_eliminacion = tkinter.Label(ventana3, text="Usuario encontrado:\n"
+                                                                   f"{registro}\n"
+                                                                   f"Desea eliminar al usuario ? Si / No")
+            etiqueta_de_eliminacion.pack()
+
+            def boton_si():
+                cursor.execute("DELETE FROM Productos WHERE num_producto = %s", (num_producto,))
+                conn.commit()
+                messagebox.showinfo("¡EXITO!", "Su producto fue eliminado correctamente")
+                limpiar_datos()
+
+            def boton_no():
+                if not registro:
+                    messagebox.showerror("Error", "Por favor, ingresa un número de producto válido.")
+                else:
+                    messagebox.showinfo("¡EXITO!", "Su producto no fue eliminado")
+                    limpiar_datos()
+
+            boton_si = tkinter.Button(ventana3, text="Si", command=boton_si, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_si.pack(pady=10)
+            boton_no = tkinter.Button(ventana3, text="No", command=boton_no, bg="blue", fg="white", width=15,
+                                      height=2, bd=12)
+            boton_no.pack(pady=10)
+
+    ventana3 = tkinter.Toplevel()
+    ventana3.geometry("700x700")
+    etiqueta3 = tkinter.Label(ventana3, text="Ingrese el número del producto que desea eliminar: ",
+                              font=("times new roman", 14))
+    etiqueta3.pack(pady=20)
+
+    etiqueta_ID = tkinter.Label(ventana3, text="No. del producto:", font=("times new roman", 12))
+    etiqueta_ID.pack()
+    cuadro_ID = tkinter.Entry(ventana3, font=("times new roman", 12))
+    cuadro_ID.pack(pady=10)
+    boton_obtener_datos = tkinter.Button(ventana3, text="Aceptar", command=obtener_datos, bg="blue", fg="white",
+                                         width=15, height=2, bd=12)
+    boton_obtener_datos.pack(pady=10)
+
+    def regresar1():
+        ventana3.destroy()
+
+    boton_regresar = tkinter.Button(ventana3, text="Regresar al menú", command=regresar1, bg="red", fg="white",
+                                    width=15, height=2, bd=12)
+    boton_regresar.pack(pady=5)
 
 
 def menu_de_productos():
@@ -1214,9 +1567,12 @@ def menu_de_productos():
     boton4 = tkinter.Button(ventana4, text="Agregar producto", command=agregar_producto, bg="lime", fg="black",
                             width=15, height=2, bd=12)
     boton4.pack(pady=5)
-    boton5 = tkinter.Button(ventana4, text="Editar producto", command=editar_producto, bg="lime", fg="black",
+    boton5 = tkinter.Button(ventana4, text="Editar producto", command=editar_producto, bg="green", fg="black",
                             width=15, height=2, bd=12)
     boton5.pack(pady=5)
+    boton6 = tkinter.Button(ventana4, text="Eliminar producto", command=eliminar_producto, bg="lime", fg="black",
+                            width=15, height=2, bd=12)
+    boton6.pack(pady=5)
 
     def regresar2():
         ventana4.destroy()
@@ -1272,33 +1628,30 @@ def obtener_datos1():
     def salir():
         ventana2.destroy()
 
-    if usuarios.search_by_ID_usuario(identificador) is None:
-        consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
-        cursor.execute(consulta, (identificador,))
-        registro = cursor.fetchone()
-        if not registro:
-            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
-        elif registro:
-            ventana2 = tkinter.Toplevel()
-            ventana2.geometry("900x700")
-            etiqueta = tkinter.Label(ventana2, text="BIENVENIDO AL MENÚ",
-                                     font=("times new roman", 14))
-            etiqueta.pack(pady=20)
-            a = (registro[1])
-            etiqueta = tkinter.Label(ventana2, text=a,
-                                     font=("times new roman", 14))
-            etiqueta.pack(pady=20)
+    consulta = "SELECT * FROM Usuarios WHERE identificador = %s"
+    cursor.execute(consulta, (identificador,))
+    registro = cursor.fetchone()
+    if not registro:
+        messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+    elif registro:
+        ventana2 = tkinter.Toplevel()
+        ventana2.geometry("900x700")
+        etiqueta = tkinter.Label(ventana2, text="BIENVENIDO AL MENÚ",
+                                 font=("times new roman", 14))
+        etiqueta.pack(pady=20)
+        a = (registro[1])
+        etiqueta = tkinter.Label(ventana2, text=a,
+                                 font=("times new roman", 14))
+        etiqueta.pack(pady=20)
 
-            boton0 = tkinter.Button(ventana2, text="Ver el menú", command=vermenu, font=("times new roman", 12),
-                                    bg="blue",
-                                    fg="white", width=15, height=2, bd=12)
-            boton0.pack(pady=5)
-            boton1 = tkinter.Button(ventana2, text="Salir", command=salir, font=("times new roman", 12), bg="red",
-                                    fg="black",
-                                    width=15, height=2, bd=12)
-            boton1.pack(pady=5)
-        else:
-            messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
+        boton0 = tkinter.Button(ventana2, text="Ver el menú", command=vermenu, font=("times new roman", 12),
+                                bg="blue",
+                                fg="white", width=15, height=2, bd=12)
+        boton0.pack(pady=5)
+        boton1 = tkinter.Button(ventana2, text="Salir", command=salir, font=("times new roman", 12), bg="red",
+                                fg="black",
+                                width=15, height=2, bd=12)
+        boton1.pack(pady=5)
     else:
         messagebox.showerror("Error", "Por favor, ingresa un ID válido.")
 
